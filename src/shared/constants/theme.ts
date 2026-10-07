@@ -18,6 +18,20 @@ export const colors = {
   purpleSoft: '#EEE8FB',
   white: '#FFFFFF',
   black: '#000000',
+  figmaBackground: '#F8FAF6',
+  figmaSurfaceMuted: '#F3F4F0',
+  figmaText: '#191C1A',
+  figmaTextSecondary: '#434842',
+  figmaTextMuted: '#737972',
+  primaryDeep: '#122819',
+  primaryGreen: '#006E2D',
+  successBright: '#62DF7D',
+  successSoft: 'rgba(127,252,151,0.2)',
+  successSoftStrong: 'rgba(127,252,151,0.4)',
+  successText: '#005320',
+  error: '#BA1A1A',
+  errorText: '#93000A',
+  errorSoft: 'rgba(255,218,214,0.6)',
 };
 
 export const spacing = {
