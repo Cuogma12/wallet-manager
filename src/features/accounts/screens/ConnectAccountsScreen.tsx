@@ -1,8 +1,10 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { uiClasses } from '@/shared/styles/classes';
+import { cn } from '@/shared/styles/cn';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
 import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
 import { ProgressBar } from '@/shared/components/atoms/ProgressBar';
-import { colors, radii, spacing } from '@/shared/constants/theme';
+import { colors } from '@/shared/constants/theme';
 import { useI18n } from '@/shared/i18n';
 import { ConnectionPartnerCard } from '@/features/accounts/components/ConnectionPartnerCard';
 import { SecurityGuaranteeCard } from '@/features/accounts/components/SecurityGuaranteeCard';
@@ -31,29 +33,66 @@ export default function ConnectAccountsScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.screen}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Pressable accessibilityRole="button" accessibilityLabel={t('accountConnections.back')} onPress={goBack} style={styles.backButton}>
+      <View className="flex-1 bg-figmaBackground">
+        <View className="h-16 flex-row items-center justify-between px-md bg-[rgba(248,250,246,0.95)] shadow-[0px_1px_8px_rgba(40,62,45,0.04)]">
+          <View className={cn(uiClasses.row, 'gap-2 flex-1')}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('accountConnections.back')}
+              onPress={goBack}
+              className="w-11 h-11 items-center justify-center rounded-[22px]"
+            >
               <AppIcon name="arrow-left" size={21} color={colors.figmaText} />
             </Pressable>
-            <Text style={styles.logo}>Monee</Text>
-            <Text style={styles.headerTitle}>{t('accountConnections.title')}</Text>
+            <Text className="text-primaryGreen text-[14px] font-extrabold">
+              Monee
+            </Text>
+            <Text className="text-figmaText text-[18px] font-bold -tracking-[0.18px]">
+              {t('accountConnections.title')}
+            </Text>
           </View>
-          <Pressable accessibilityRole="button" accessibilityLabel={t('accountConnections.support')} onPress={showHelp} style={styles.helpButton}>
-            <AppIcon name="help-circle-outline" size={16} color={colors.white} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('accountConnections.support')}
+            onPress={showHelp}
+            className="w-8 h-8 items-center justify-center rounded-[16px] bg-primaryDeep"
+          >
+            <AppIcon
+              name="help-circle-outline"
+              size={16}
+              color={colors.white}
+            />
           </Pressable>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.topContext}>
-            <View style={styles.secureLabelRow}>
-              <View style={styles.secureDot} />
-              <Text style={styles.secureLabel}>{t('accountConnections.secureLabel')}</Text>
+        <ScrollView
+          contentContainerClassName="gap-2 p-md pb-[34px]"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className={cn(uiClasses.rowBetween, 'pt-1 pb-2')}>
+            <View className={cn(uiClasses.row, 'gap-1 flex-1')}>
+              <View className="w-2 h-2 rounded-[4px] bg-successBright" />
+              <Text className="text-primaryGreen text-[11px] font-bold tracking-[0.55px]">
+                {t('accountConnections.secureLabel')}
+              </Text>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel={t('accountConnections.support')} onPress={showHelp} style={styles.supportPill}>
-              <AppIcon name="lifebuoy" size={13} color={colors.figmaTextSecondary} />
-              <Text style={styles.supportText}>{t('accountConnections.support')}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('accountConnections.support')}
+              onPress={showHelp}
+              className={cn(
+                uiClasses.row,
+                'gap-1 px-2.5 py-1 rounded-pill bg-[#EDEEEB]',
+              )}
+            >
+              <AppIcon
+                name="lifebuoy"
+                size={13}
+                color={colors.figmaTextSecondary}
+              />
+              <Text className="text-figmaTextSecondary text-[11px] font-medium tracking-[0.33px]">
+                {t('accountConnections.support')}
+              </Text>
             </Pressable>
           </View>
 
@@ -68,54 +107,112 @@ export default function ConnectAccountsScreen() {
             ]}
           />
 
-          <SectionHeading title={t('accountConnections.systemStatus')} trailing={t('accountConnections.realtime')} />
-          <View style={styles.stack}>
-            <View style={styles.syncCard}>
-              <View style={styles.providerRow}>
-                <ProviderLogo label="VCB" backgroundColor={colors.figmaSurfaceMuted} color={colors.primaryGreen} />
-                <View style={styles.providerBody}>
-                  <Text style={styles.providerName}>{t('accountConnections.providers.vietcombank.name')}</Text>
-                  <Text style={styles.providerDetail}>{t('accountConnections.providers.vietcombank.detail')}</Text>
+          <SectionHeading
+            title={t('accountConnections.systemStatus')}
+            trailing={t('accountConnections.realtime')}
+          />
+          <View className="gap-2">
+            <View className="gap-2 p-3 rounded-[18px] bg-surface shadow-card">
+              <View className={cn(uiClasses.row, 'gap-2')}>
+                <ProviderLogo
+                  label="VCB"
+                  backgroundColor={colors.figmaSurfaceMuted}
+                  color={colors.primaryGreen}
+                />
+                <View className="flex-1 gap-0.5">
+                  <Text className="text-figmaText text-[14px] font-extrabold tracking-[0.14px]">
+                    {t('accountConnections.providers.vietcombank.name')}
+                  </Text>
+                  <Text className="text-figmaTextSecondary text-[13px] leading-[18px]">
+                    {t('accountConnections.providers.vietcombank.detail')}
+                  </Text>
                 </View>
-                <View style={styles.syncPill}>
+                <View
+                  className={cn(
+                    uiClasses.row,
+                    'gap-1.5 px-3 py-1 rounded-pill bg-successSoftStrong',
+                  )}
+                >
                   <AppIcon name="sync" size={14} color={colors.successText} />
-                  <Text style={styles.syncPillText}>{t('accountConnections.syncing')}</Text>
+                  <Text className="text-successText text-[11px] font-bold tracking-[0.33px]">
+                    {t('accountConnections.syncing')}
+                  </Text>
                 </View>
               </View>
-              <View style={styles.progressInfo}>
-                <Text style={styles.progressLabel}>{t('accountConnections.syncDetail')}</Text>
-                <Text style={styles.progressValue}>{t('accountConnections.syncProgress', { progress: 78 })}</Text>
+              <View
+                className={cn(
+                  uiClasses.rowBetween,
+                  'px-3 py-2 rounded-[12px] bg-figmaSurfaceMuted',
+                )}
+              >
+                <Text className="text-figmaTextSecondary text-[13px]">
+                  {t('accountConnections.syncDetail')}
+                </Text>
+                <Text className="text-primaryGreen text-[11px] font-extrabold">
+                  {t('accountConnections.syncProgress', { progress: 78 })}
+                </Text>
               </View>
               <ProgressBar progress={0.78} color={colors.primaryGreen} />
             </View>
 
-            {showSessionExpired && <View style={styles.errorCard}>
-              <View style={styles.errorHeadingRow}>
-                <View style={styles.errorIconBox}>
-                  <AppIcon name="alert-circle-outline" size={20} color={colors.white} />
-                </View>
-                <View style={styles.errorBody}>
-                  <View style={styles.errorTitleRow}>
-                    <Text style={styles.errorTitle}>{t('accountConnections.sessionExpiredTitle')}</Text>
-                    <Text style={styles.pausedBadge}>{t('accountConnections.paused')}</Text>
+            {showSessionExpired && (
+              <View className="gap-2.5 p-3 rounded-[18px] bg-errorSoft shadow-card">
+                <View className="flex-row items-start gap-2">
+                  <View className="w-10 h-10 items-center justify-center rounded-[12px] bg-error">
+                    <AppIcon
+                      name="alert-circle-outline"
+                      size={20}
+                      color={colors.white}
+                    />
                   </View>
-                  <Text style={styles.errorDescription}>{t('accountConnections.sessionExpiredDescription')}</Text>
+                  <View className="flex-1 gap-0.5">
+                    <View className={cn(uiClasses.rowBetween, 'gap-2')}>
+                      <Text className="flex-1 text-errorText text-[14px] font-extrabold tracking-[0.14px]">
+                        {t('accountConnections.sessionExpiredTitle')}
+                      </Text>
+                      <Text className="px-2 py-0.5 rounded-pill bg-error text-white text-[11px] font-bold">
+                        {t('accountConnections.paused')}
+                      </Text>
+                    </View>
+                    <Text className="text-errorText text-[13px] leading-[18px]">
+                      {t('accountConnections.sessionExpiredDescription')}
+                    </Text>
+                  </View>
+                </View>
+                <View className="flex-row justify-end gap-2">
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleSkip}
+                    className="px-3 py-1.5 rounded-[10px] bg-white"
+                  >
+                    <Text className="text-figmaTextSecondary text-[11px] font-semibold">
+                      {t('accountConnections.skip')}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleRetry}
+                    className={cn(
+                      uiClasses.row,
+                      'gap-1.5 px-3 py-1.5 rounded-[10px] bg-error',
+                    )}
+                  >
+                    <AppIcon name="refresh" size={14} color={colors.white} />
+                    <Text className="text-white text-[11px] font-bold">
+                      {t('accountConnections.retryNow')}
+                    </Text>
+                  </Pressable>
                 </View>
               </View>
-              <View style={styles.errorActions}>
-                <Pressable accessibilityRole="button" onPress={handleSkip} style={styles.skipButton}>
-                  <Text style={styles.skipText}>{t('accountConnections.skip')}</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" onPress={handleRetry} style={styles.retryButton}>
-                  <AppIcon name="refresh" size={14} color={colors.white} />
-                  <Text style={styles.retryText}>{t('accountConnections.retryNow')}</Text>
-                </Pressable>
-              </View>
-            </View>}
+            )}
           </View>
 
-          <SectionHeading icon="bank-outline" title={t('accountConnections.banksTitle')} trailing={t('accountConnections.bankCount')} />
-          <View style={styles.stack}>
+          <SectionHeading
+            icon="bank-outline"
+            title={t('accountConnections.banksTitle')}
+            trailing={t('accountConnections.bankCount')}
+          />
+          <View className="gap-2">
             <ConnectionPartnerCard
               provider={{
                 id: 'mbbank',
@@ -129,7 +226,9 @@ export default function ConnectAccountsScreen() {
               providerDetail={t('accountConnections.providers.mbbank.detail')}
               statusLabel={t('accountConnections.providers.mbbank.detail')}
               actionLabel={t('accountConnections.connect')}
-              onPress={() => handleConnect(t('accountConnections.providers.mbbank.name'))}
+              onPress={() =>
+                handleConnect(t('accountConnections.providers.mbbank.name'))
+              }
             />
             {bankProviders.map((provider) => (
               <ConnectionPartnerCard
@@ -141,7 +240,7 @@ export default function ConnectAccountsScreen() {
                 onPress={() => handleConnect(t(provider.nameKey))}
               />
             ))}
-            <View style={styles.miniProviderRow}>
+            <View className="flex-row gap-2">
               {miniBankProviders.map((provider) => (
                 <ConnectionPartnerCard
                   key={provider.id}
@@ -157,8 +256,12 @@ export default function ConnectAccountsScreen() {
             </View>
           </View>
 
-          <SectionHeading icon="wallet-outline" title={t('accountConnections.walletsTitle')} trailing={t('accountConnections.walletCount')} />
-          <View style={styles.stack}>
+          <SectionHeading
+            icon="wallet-outline"
+            title={t('accountConnections.walletsTitle')}
+            trailing={t('accountConnections.walletCount')}
+          />
+          <View className="gap-2">
             {walletProviders.map((provider) => {
               const isMomo = provider.id === 'momo';
               return (
@@ -166,35 +269,86 @@ export default function ConnectAccountsScreen() {
                   key={provider.id}
                   provider={provider}
                   providerName={t(provider.nameKey)}
-                  providerDetail={isMomo ? t('accountConnections.active') : t(provider.detailKey)}
+                  providerDetail={
+                    isMomo
+                      ? t('accountConnections.active')
+                      : t(provider.detailKey)
+                  }
                   active={isMomo}
-                  statusLabel={isMomo ? t('accountConnections.active') : undefined}
-                  phoneLabel={isMomo ? t('accountConnections.connectedPhone') : undefined}
-                  actionLabel={isMomo ? t('accountConnections.manage') : t('accountConnections.connect')}
-                  onPress={() => (isMomo ? handleManage(t(provider.nameKey)) : handleConnect(t(provider.nameKey)))}
+                  statusLabel={
+                    isMomo ? t('accountConnections.active') : undefined
+                  }
+                  phoneLabel={
+                    isMomo ? t('accountConnections.connectedPhone') : undefined
+                  }
+                  actionLabel={
+                    isMomo
+                      ? t('accountConnections.manage')
+                      : t('accountConnections.connect')
+                  }
+                  onPress={() =>
+                    isMomo
+                      ? handleManage(t(provider.nameKey))
+                      : handleConnect(t(provider.nameKey))
+                  }
                 />
               );
             })}
           </View>
 
-          <View style={styles.reassuranceCard}>
-            <View style={styles.reassuranceIcon}>
-              <AppIcon name="shield-refresh-outline" size={24} color={colors.primaryGreen} />
+          <View
+            className={cn(
+              uiClasses.row,
+              'gap-3 mt-2 p-md rounded-lg bg-[#EDEEEB]',
+            )}
+          >
+            <View className="w-12 h-12 items-center justify-center rounded-[16px] bg-white shadow-card">
+              <AppIcon
+                name="shield-refresh-outline"
+                size={24}
+                color={colors.primaryGreen}
+              />
             </View>
-            <View style={styles.reassuranceBody}>
-              <Text style={styles.reassuranceTitle}>{t('accountConnections.withdrawTitle')}</Text>
-              <Text style={styles.reassuranceText}>{t('accountConnections.withdrawDescription')}</Text>
+            <View className="flex-1 gap-0.5">
+              <Text className="text-figmaText text-[14px] font-extrabold tracking-[0.14px]">
+                {t('accountConnections.withdrawTitle')}
+              </Text>
+              <Text className="text-figmaTextSecondary text-[13px] leading-[18px]">
+                {t('accountConnections.withdrawDescription')}
+              </Text>
             </View>
           </View>
 
-          <View style={styles.ctaStack}>
-            <Pressable accessibilityRole="button" onPress={searchBanks} style={({ pressed }) => [styles.primaryCta, pressed && styles.pressed]}>
+          <View className="gap-2.5 pt-2">
+            <Pressable
+              accessibilityRole="button"
+              onPress={searchBanks}
+              className={cn(
+                'h-[52px] flex-row items-center justify-center gap-2 rounded-[16px] bg-primaryDeep shadow-[0px_4px_6px_rgba(0,0,0,0.1)]',
+                'active:opacity-[0.75]',
+              )}
+            >
               <AppIcon name="magnify" size={16} color={colors.white} />
-              <Text style={styles.primaryCtaText}>{t('accountConnections.searchBanks')}</Text>
+              <Text className="text-white text-[14px] font-extrabold tracking-[0.24px]">
+                {t('accountConnections.searchBanks')}
+              </Text>
             </Pressable>
-            <Pressable accessibilityRole="button" onPress={manualEntry} style={({ pressed }) => [styles.secondaryCta, pressed && styles.pressed]}>
-              <AppIcon name="pencil-outline" size={16} color={colors.figmaText} />
-              <Text style={styles.secondaryCtaText}>{t('accountConnections.manualEntry')}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={manualEntry}
+              className={cn(
+                'h-12 flex-row items-center justify-center gap-2 rounded-[16px] bg-[#EDEEEB]',
+                'active:opacity-[0.75]',
+              )}
+            >
+              <AppIcon
+                name="pencil-outline"
+                size={16}
+                color={colors.figmaText}
+              />
+              <Text className="text-figmaText text-[14px] font-bold">
+                {t('accountConnections.manualEntry')}
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -203,93 +357,50 @@ export default function ConnectAccountsScreen() {
   );
 }
 
-function ProviderLogo({ label, backgroundColor, color }: { label: string; backgroundColor: string; color: string }) {
+function ProviderLogo({
+  label,
+  backgroundColor,
+  color,
+}: {
+  label: string;
+  backgroundColor: string;
+  color: string;
+}) {
   return (
-    <View style={[styles.providerLogo, { backgroundColor }]}>
-      <Text style={[styles.providerLogoText, { color }]}>{label}</Text>
+    <View
+      className="w-11 h-11 items-center justify-center rounded-[12px]"
+      style={{ backgroundColor }}
+    >
+      <Text
+        className="text-[14px] font-extrabold text-center"
+        style={{ color }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
 
-function SectionHeading({ icon, title, trailing }: { icon?: 'bank-outline' | 'wallet-outline'; title: string; trailing: string }) {
+function SectionHeading({
+  icon,
+  title,
+  trailing,
+}: {
+  icon?: 'bank-outline' | 'wallet-outline';
+  title: string;
+  trailing: string;
+}) {
   return (
-    <View style={styles.sectionHeading}>
-      <View style={styles.sectionTitleRow}>
+    <View className={cn(uiClasses.rowBetween, 'pt-2 pb-0.5')}>
+      <View className={cn(uiClasses.row, 'gap-2')}>
         {icon && <AppIcon name={icon} size={16} color={colors.figmaText} />}
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text className="text-figmaText text-[18px] font-extrabold -tracking-[0.45px]">
+          {title}
+        </Text>
       </View>
-      <Text style={styles.sectionTrailing}>{trailing}</Text>
+      <Text className="text-figmaTextMuted text-[11px] font-medium tracking-[0.33px]">
+        {trailing}
+      </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.figmaBackground },
-  header: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(248,250,246,0.95)',
-    shadowColor: '#283E2D',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
-  backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22 },
-  logo: { color: colors.primaryGreen, fontSize: 14, fontWeight: '800' },
-  headerTitle: { color: colors.figmaText, fontSize: 18, fontWeight: '700', letterSpacing: -0.18 },
-  helpButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: colors.primaryDeep },
-  content: { gap: 8, padding: spacing.md, paddingBottom: 34 },
-  topContext: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4, paddingBottom: 8 },
-  secureLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 },
-  secureDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.successBright },
-  secureLabel: { color: colors.primaryGreen, fontSize: 11, fontWeight: '700', letterSpacing: 0.55 },
-  supportPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radii.pill, backgroundColor: '#EDEEEB' },
-  supportText: { color: colors.figmaTextSecondary, fontSize: 11, fontWeight: '500', letterSpacing: 0.33 },
-  sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, paddingBottom: 2 },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { color: colors.figmaText, fontSize: 18, fontWeight: '800', letterSpacing: -0.45 },
-  sectionTrailing: { color: colors.figmaTextMuted, fontSize: 11, fontWeight: '500', letterSpacing: 0.33 },
-  stack: { gap: 8 },
-  syncCard: { gap: 8, padding: 12, borderRadius: 18, backgroundColor: colors.surface, shadowColor: colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  providerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  providerLogo: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  providerLogoText: { fontSize: 14, fontWeight: '800', textAlign: 'center' },
-  providerBody: { flex: 1, gap: 2 },
-  providerName: { color: colors.figmaText, fontSize: 14, fontWeight: '800', letterSpacing: 0.14 },
-  providerDetail: { color: colors.figmaTextSecondary, fontSize: 13, lineHeight: 18 },
-  syncPill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radii.pill, backgroundColor: colors.successSoftStrong },
-  syncPillText: { color: colors.successText, fontSize: 11, fontWeight: '700', letterSpacing: 0.33 },
-  progressInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: colors.figmaSurfaceMuted },
-  progressLabel: { color: colors.figmaTextSecondary, fontSize: 13 },
-  progressValue: { color: colors.primaryGreen, fontSize: 11, fontWeight: '800' },
-  errorCard: { gap: 10, padding: 12, borderRadius: 18, backgroundColor: colors.errorSoft, shadowColor: colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  errorHeadingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  errorIconBox: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: colors.error },
-  errorBody: { flex: 1, gap: 2 },
-  errorTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  errorTitle: { flex: 1, color: colors.errorText, fontSize: 14, fontWeight: '800', letterSpacing: 0.14 },
-  pausedBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.pill, backgroundColor: colors.error, color: colors.white, fontSize: 11, fontWeight: '700' },
-  errorDescription: { color: colors.errorText, fontSize: 13, lineHeight: 18 },
-  errorActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  skipButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: colors.white },
-  skipText: { color: colors.figmaTextSecondary, fontSize: 11, fontWeight: '600' },
-  retryButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: colors.error },
-  retryText: { color: colors.white, fontSize: 11, fontWeight: '700' },
-  miniProviderRow: { flexDirection: 'row', gap: 8 },
-  reassuranceCard: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8, padding: spacing.md, borderRadius: radii.lg, backgroundColor: '#EDEEEB' },
-  reassuranceIcon: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: colors.white, shadowColor: colors.black, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
-  reassuranceBody: { flex: 1, gap: 2 },
-  reassuranceTitle: { color: colors.figmaText, fontSize: 14, fontWeight: '800', letterSpacing: 0.14 },
-  reassuranceText: { color: colors.figmaTextSecondary, fontSize: 13, lineHeight: 18 },
-  ctaStack: { gap: 10, paddingTop: 8 },
-  primaryCta: { height: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 16, backgroundColor: colors.primaryDeep, shadowColor: colors.black, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 },
-  primaryCtaText: { color: colors.white, fontSize: 14, fontWeight: '800', letterSpacing: 0.24 },
-  secondaryCta: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 16, backgroundColor: '#EDEEEB' },
-  secondaryCtaText: { color: colors.figmaText, fontSize: 14, fontWeight: '700' },
-  pressed: { opacity: 0.75 },
-});
