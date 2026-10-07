@@ -1,5 +1,9 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Mandatory coding rules
+
+Before writing, modifying, or reviewing code, read [CODING_RULES.md](./CODING_RULES.md) completely and use its checklist. Vietnamese-speaking contributors may also read [CODING_RULES.vi.md](./CODING_RULES.vi.md). Every contributor and coding agent must follow the English source-of-truth rules. Do not start implementation until the pre-coding checklist is satisfied, and do not declare work complete until the post-coding checklist is satisfied.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:

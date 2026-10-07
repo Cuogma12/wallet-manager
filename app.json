@@ -1,12 +1,22 @@
 {
   "expo": {
-    "name": "wallet-manager",
-    "slug": "wallet-manager",
+    "name": "Monee",
+    "slug": "monee",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "monee",
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
+      "bundleIdentifier": "com.walletmanager.monee",
       "supportsTablet": true
     },
     "android": {
@@ -19,11 +29,8 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "bundler": "metro",
       "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      "expo-sqlite"
-    ]
+    }
   }
 }
