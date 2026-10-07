@@ -9,6 +9,7 @@ export type Account = {
   icon: string;
   color: string;
   syncStatus: 'local' | 'connected' | 'needs-review';
+  isDemo?: boolean;
 };
 
 export type Transaction = {
@@ -24,6 +25,8 @@ export type Transaction = {
   note?: string;
   source: 'manual' | 'imported' | 'bank-api';
   isReviewed: boolean;
+  salaryMonth?: string;
+  isDemo?: boolean;
 };
 
 export type FinanceSettings = {
@@ -41,4 +44,20 @@ export type NewTransaction = {
   categoryIcon: string;
   occurredAt: string;
   note?: string;
+};
+
+export type SaveAccount = {
+  id?: string;
+  name: string;
+  type: AccountType;
+  balance: number;
+};
+
+export type NewSalary = {
+  accountId: string;
+  amount: number;
+  month: string;
+  receivedAt: string;
+  title: string;
+  includedInBalance: boolean;
 };

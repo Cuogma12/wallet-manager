@@ -1,34 +1,45 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { seedAccounts, seedSettings, seedTransactions } from '@/data/seed';
-import { DB_SCHEMA_VERSION, LOCAL_DEVICE_ID, LOCAL_PROFILE_ID } from '@/db/constants';
+import { seedAccounts, seedTransactions } from '@/data/seed';
+import {
+  DB_SCHEMA_VERSION,
+  LOCAL_DEVICE_ID,
+  LOCAL_PROFILE_ID,
+} from '@/db/constants';
 
 const now = () => new Date().toISOString();
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
-  const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  const versionRow = await db.getFirstAsync<{ user_version: number }>(
+    'PRAGMA user_version',
+  );
   let currentVersion = versionRow?.user_version ?? 0;
 
   if (currentVersion > DB_SCHEMA_VERSION) {
     throw new Error(`Unsupported database version: ${currentVersion}`);
   }
 
-  if (currentVersion === 0) {
-    await createVersion2Schema(db);
-    await seedVersion2Data(db);
-    currentVersion = DB_SCHEMA_VERSION;
+  await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = OFF;');
+  try {
+    await db.withTransactionAsync(async () => {
+      if (currentVersion === 0) {
+        await createVersion2Schema(db);
+        await initializeProfile(db);
+        currentVersion = 2;
+      }
+      if (currentVersion === 1) {
+        await migrateV1ToV2(db);
+        currentVersion = 2;
+      }
+      if (currentVersion === 2) await migrateV2ToV3(db);
+      await db.execAsync(`PRAGMA user_version = ${DB_SCHEMA_VERSION}`);
+    });
+  } finally {
+    await db.execAsync('PRAGMA foreign_keys = ON;');
   }
-
-  if (currentVersion === 1) {
-    await migrateV1ToV2(db);
-    currentVersion = DB_SCHEMA_VERSION;
-  }
-
-  await db.execAsync(`PRAGMA user_version = ${DB_SCHEMA_VERSION}`);
 }
 
 async function createVersion2Schema(db: SQLiteDatabase) {
   await db.execAsync(`
-    PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY NOT NULL,
       auth_user_id TEXT UNIQUE,
@@ -92,7 +103,7 @@ async function createVersion2Schema(db: SQLiteDatabase) {
   `);
 }
 
-async function seedVersion2Data(db: SQLiteDatabase) {
+async function initializeProfile(db: SQLiteDatabase) {
   const timestamp = now();
 
   await db.runAsync(
@@ -108,52 +119,12 @@ async function seedVersion2Data(db: SQLiteDatabase) {
       (id, profile_id, initial_balance, monthly_income, salary_day, created_at, updated_at)
      VALUES (1, ?, ?, ?, ?, ?, ?)`,
     LOCAL_PROFILE_ID,
-    seedSettings.initialBalance,
-    seedSettings.monthlyIncome,
-    seedSettings.salaryDay,
+    0,
+    0,
+    1,
     timestamp,
     timestamp,
   );
-
-  for (const account of seedAccounts) {
-    await db.runAsync(
-      `INSERT INTO accounts
-        (id, profile_id, name, type, balance, icon, color, sync_status, sync_state, external_id, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', NULL, ?, ?, NULL)`,
-      account.id,
-      LOCAL_PROFILE_ID,
-      account.name,
-      account.type,
-      account.balance,
-      account.icon,
-      account.color,
-      account.syncStatus,
-      timestamp,
-      timestamp,
-    );
-  }
-
-  for (const transaction of seedTransactions) {
-    await db.runAsync(
-      `INSERT INTO transactions
-        (id, profile_id, account_id, title, merchant, amount, type, category, occurred_at, note, source, is_reviewed, external_id, sync_state, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'pending', ?, ?, NULL)`,
-      transaction.id,
-      LOCAL_PROFILE_ID,
-      transaction.accountId,
-      transaction.title,
-      transaction.merchant,
-      transaction.amount,
-      transaction.type,
-      transaction.category,
-      transaction.occurredAt,
-      transaction.note ?? null,
-      transaction.source,
-      transaction.isReviewed ? 1 : 0,
-      timestamp,
-      timestamp,
-    );
-  }
 }
 
 async function migrateV1ToV2(db: SQLiteDatabase) {
@@ -192,14 +163,105 @@ async function migrateV1ToV2(db: SQLiteDatabase) {
     timestamp,
     timestamp,
   );
-  await db.runAsync("UPDATE settings SET created_at = ?, updated_at = ? WHERE created_at = ''", timestamp, timestamp);
-  await db.runAsync("UPDATE accounts SET created_at = ?, updated_at = ? WHERE created_at = ''", timestamp, timestamp);
-  await db.runAsync("UPDATE transactions SET created_at = ?, updated_at = ? WHERE created_at = ''", timestamp, timestamp);
+  await db.runAsync(
+    "UPDATE settings SET created_at = ?, updated_at = ? WHERE created_at = ''",
+    timestamp,
+    timestamp,
+  );
+  await db.runAsync(
+    "UPDATE accounts SET created_at = ?, updated_at = ? WHERE created_at = ''",
+    timestamp,
+    timestamp,
+  );
+  await db.runAsync(
+    "UPDATE transactions SET created_at = ?, updated_at = ? WHERE created_at = ''",
+    timestamp,
+    timestamp,
+  );
   await db.execAsync(`
     CREATE INDEX IF NOT EXISTS idx_accounts_profile_id ON accounts(profile_id);
     CREATE INDEX IF NOT EXISTS idx_transactions_profile_date ON transactions(profile_id, occurred_at DESC);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_external_id
       ON transactions(profile_id, source, external_id)
       WHERE external_id IS NOT NULL;
+  `);
+}
+
+async function migrateV2ToV3(db: SQLiteDatabase) {
+  await db.execAsync(`
+    ALTER TABLE accounts ADD COLUMN opening_balance INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE accounts ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;
+    CREATE TABLE transactions_v3 (
+      id TEXT PRIMARY KEY NOT NULL,
+      profile_id TEXT NOT NULL,
+      account_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      merchant TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      category TEXT NOT NULL,
+      occurred_at TEXT NOT NULL,
+      note TEXT,
+      source TEXT NOT NULL,
+      is_reviewed INTEGER NOT NULL DEFAULT 1,
+      external_id TEXT,
+      sync_state TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT,
+      salary_month TEXT,
+      is_demo INTEGER NOT NULL DEFAULT 0,
+      FOREIGN KEY (profile_id) REFERENCES profiles(id),
+      FOREIGN KEY (account_id) REFERENCES accounts(id)
+    );
+    INSERT INTO transactions_v3
+      (id, profile_id, account_id, title, merchant, amount, type, category,
+       occurred_at, note, source, is_reviewed, external_id, sync_state, created_at, updated_at, deleted_at)
+    SELECT id, profile_id, account_id, title, merchant, amount, type, category,
+       occurred_at, note, source, is_reviewed, external_id, sync_state, created_at, updated_at, deleted_at
+    FROM transactions;
+    DROP TABLE transactions;
+    ALTER TABLE transactions_v3 RENAME TO transactions;
+    CREATE INDEX idx_transactions_profile_date ON transactions(profile_id, occurred_at DESC);
+    CREATE UNIQUE INDEX idx_transactions_external_id
+      ON transactions(profile_id, source, external_id) WHERE external_id IS NOT NULL;
+    CREATE UNIQUE INDEX idx_salary_month
+      ON transactions(profile_id, salary_month)
+      WHERE salary_month IS NOT NULL AND deleted_at IS NULL AND is_demo = 0;
+  `);
+  // Only exact legacy seed identities are marked, never every old record.
+  for (const account of seedAccounts) {
+    await db.runAsync(
+      'UPDATE accounts SET is_demo = 1 WHERE profile_id = ? AND id = ? AND name = ? AND type = ? AND icon = ? AND color = ?',
+      LOCAL_PROFILE_ID,
+      account.id,
+      account.name,
+      account.type,
+      account.icon,
+      account.color,
+    );
+  }
+  for (const transaction of seedTransactions) {
+    await db.runAsync(
+      `UPDATE transactions SET is_demo = 1
+       WHERE profile_id = ? AND id = ? AND account_id = ? AND title = ? AND merchant = ?
+       AND amount = ? AND type = ? AND category = ? AND occurred_at = ? AND source = ?`,
+      LOCAL_PROFILE_ID,
+      transaction.id,
+      transaction.accountId,
+      transaction.title,
+      transaction.merchant,
+      transaction.amount,
+      transaction.type,
+      transaction.category,
+      transaction.occurredAt,
+      transaction.source,
+    );
+  }
+  await db.execAsync(`
+    UPDATE accounts SET opening_balance = balance - COALESCE((
+      SELECT SUM(CASE WHEN type = 'income' THEN amount WHEN type = 'expense' THEN -amount ELSE 0 END)
+      FROM transactions WHERE account_id = accounts.id AND profile_id = accounts.profile_id AND deleted_at IS NULL
+    ), 0);
   `);
 }

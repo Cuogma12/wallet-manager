@@ -9,6 +9,10 @@ export const vi = {
     seeReport: 'Xem báo cáo',
     manage: 'Quản lý',
     vnd: '₫',
+    back: 'Quay lại',
+    saving: 'Đang lưu...',
+    retry: 'Thử lại',
+    loadFailed: 'Không đọc được dữ liệu trên máy. Hãy thử lại.',
   },
   nav: {
     overview: 'Tổng quan',
@@ -68,8 +72,87 @@ export const vi = {
     importStatement: 'Import sao kê',
     comingSoon: 'Sắp có',
     settingsComingSoon: 'Tính năng cài đặt tài khoản sẽ được bổ sung sau.',
-    openBankingComingSoon: 'Backend Open Banking sẽ được tích hợp ở bước tiếp theo.',
-    importComingSoon: 'Tính năng import CSV/Excel sẽ được bổ sung ở bước tiếp theo.',
+    openBankingComingSoon:
+      'Backend Open Banking sẽ được tích hợp ở bước tiếp theo.',
+    importComingSoon:
+      'Tính năng import CSV/Excel sẽ được bổ sung ở bước tiếp theo.',
+    addWallet: 'Thêm ví',
+    editWallet: 'Sửa ví {{name}}',
+    recordSalary: 'Ghi nhận lương',
+    emptyTitle: 'Bắt đầu với ví đầu tiên',
+    emptyText:
+      'Nhập số tiền hiện có trong từng ví. Tổng tài sản sẽ tự cộng từ các ví này.',
+    demoBadge: 'Mẫu',
+    demoTitle: 'Bạn đang có dữ liệu mẫu',
+    demoDescription:
+      'Bỏ dữ liệu mẫu trước khi thiết lập tiền của bạn. Giao dịch tự nhập luôn được giữ lại.',
+    clearDemo: 'Bỏ dữ liệu mẫu',
+    clearDemoTitle: 'Bỏ dữ liệu mẫu?',
+    clearDemoConfirm:
+      'Chỉ giao dịch mẫu và ví mẫu chưa sử dụng sẽ được ẩn. Ví mẫu có giao dịch tự nhập được giữ, nhưng số dư mẫu bị bỏ; số dư có thể âm. Ví đã sửa số dư và ví tự tạo không bị mất.',
+    clearDemoDone: 'Đã bỏ dữ liệu mẫu',
+    clearDemoDoneText:
+      'Giao dịch của bạn vẫn còn. Hãy kiểm tra và nhập số dư hiện tại cho các ví được giữ lại.',
+    balanceHint: 'Chạm vào một ví để sửa tên, loại ví hoặc số dư hiện tại.',
+    resetAll: 'Xóa toàn bộ dữ liệu',
+    resetTitle: 'Xóa hết dữ liệu trên máy này?',
+    resetWarning: 'Xóa cả ví, lương và giao dịch đã nhập',
+    resetDescription:
+      'Chỉ dùng khi muốn bắt đầu lại từ đầu. Không thể hoàn tác trong app.',
+    resetConfirm:
+      'Tất cả ví, giao dịch, lương và dữ liệu mẫu của hồ sơ hiện tại trên máy này sẽ bị xóa vĩnh viễn; số dư và thiết lập tiền về 0. Không thể hoàn tác nếu chưa có bản sao lưu. Thao tác không xóa tài khoản hay giao dịch tại ngân hàng/ví điện tử.',
+    resetDone: 'Đã xóa dữ liệu trên máy',
+    resetDoneText:
+      'Bạn có thể tạo ví mới và nhập số dư hiện tại để bắt đầu lại.',
+  },
+  manageAccount: {
+    createTitle: 'Tạo ví',
+    editTitle: 'Sửa ví',
+    name: 'Tên ví',
+    namePlaceholder: 'Ví dụ: Tiền mặt, ngân hàng của tôi',
+    type: 'Loại ví',
+    balance: 'Số dư hiện tại (₫)',
+    balancePlaceholder: 'Ví dụ: 1.200.000',
+    balanceHint:
+      'Nhập số tiền hiện có. Đây là số dư gốc, không phải giao dịch thu. Có thể nhập số âm nếu ví đang nợ.',
+    editHint:
+      'Sửa số dư không xóa lịch sử giao dịch và không làm tăng thu nhập.',
+    save: 'Lưu ví',
+  },
+  salary: {
+    title: 'Ghi nhận lương',
+    month: 'Lương của tháng',
+    previousMonth: 'Tháng trước',
+    nextMonth: 'Tháng sau',
+    amount: 'Lương thực nhận (₫)',
+    amountPlaceholder: 'Ví dụ: 18.000.000',
+    receivedDate: 'Ngày nhận lương',
+    datePlaceholder: 'DD/MM/YYYY',
+    dateHint:
+      'Ngày nhận thực tế có thể khác tháng lương. Không nhập ngày tương lai.',
+    account: 'Ví nhận lương',
+    transactionTitle: 'Lương {{month}}',
+    alreadyRecorded:
+      'Đã ghi nhận lương tháng này. Không thể cộng thêm lần nữa.',
+    included: 'Lương đã nằm trong số dư ví',
+    includedHint:
+      'Bật nếu số dư bạn vừa nhập đã bao gồm lương này. App ghi giao dịch thu nhưng không cộng tiền thêm.',
+    save: 'Lưu lương',
+    noAccount: 'Tạo một ví trước để chọn nơi nhận lương.',
+  },
+  financeErrors: {
+    invalidAmount: 'Nhập số tiền nguyên, lớn hơn 0 và trong giới hạn an toàn.',
+    invalidBalance: 'Số dư phải là số tiền nguyên trong giới hạn an toàn.',
+    nameRequired: 'Nhập tên ví trước nhé.',
+    titleRequired: 'Nhập tên giao dịch trước nhé.',
+    accountRequired: 'Chọn một ví trước nhé.',
+    accountNotFound: 'Ví này không còn tồn tại. Hãy chọn hoặc tạo ví khác.',
+    invalidMonth: 'Tháng lương không hợp lệ.',
+    invalidDate: 'Nhập ngày có thật theo định dạng DD/MM/YYYY.',
+    futureDate: 'Chỉ ghi nhận lương đã nhận, không chọn ngày tương lai.',
+    salaryExists: 'Tháng này đã có giao dịch lương. Không cộng thêm lần nữa.',
+    unsupportedTransfer: 'Chuyển tiền giữa các ví chưa được hỗ trợ.',
+    saveFailed: 'Không lưu được dữ liệu. Hãy thử lại.',
   },
   accountConnections: {
     title: 'Kết Nối Tài Khoản',
@@ -78,7 +161,8 @@ export const vi = {
     support: 'Hỗ trợ kết nối',
     securityTitle: 'Quyền truy cập CHỈ ĐỌC (Read-Only)',
     safeBadge: '100% An toàn',
-    securityDescription: 'Monee chỉ đọc lịch sử biến động số dư và giao dịch để tự động phân loại chi tiêu thông minh.',
+    securityDescription:
+      'Monee chỉ đọc lịch sử biến động số dư và giao dịch để tự động phân loại chi tiêu thông minh.',
     noTransfer: 'KHÔNG THỂ thực hiện chuyển tiền hoặc thanh toán',
     noPassword: 'KHÔNG BAO GIỜ yêu cầu mật khẩu đăng nhập ngân hàng',
     noOtp: 'KHÔNG lưu trữ mã OTP hay thông tin bảo mật nhạy cảm',
@@ -88,7 +172,8 @@ export const vi = {
     syncDetail: 'Đang đồng bộ 30 ngày giao dịch gần nhất...',
     syncProgress: '{{progress}}%',
     sessionExpiredTitle: 'MBBank Cần Cấp Lại Quyền',
-    sessionExpiredDescription: 'Phiên kết nối hết hạn bao gồm các giao dịch gần nhất (90 ngày). Vui lòng xác thực lại để tiếp tục đồng bộ dữ liệu.',
+    sessionExpiredDescription:
+      'Phiên kết nối hết hạn bao gồm các giao dịch gần nhất (90 ngày). Vui lòng xác thực lại để tiếp tục đồng bộ dữ liệu.',
     paused: 'Tạm ngắt',
     skip: 'Bỏ qua',
     retryNow: 'Thử lại ngay',
@@ -102,13 +187,15 @@ export const vi = {
     connect: 'Kết nối',
     connectedPhone: '090••••123',
     withdrawTitle: 'Chủ động thu hồi quyền bất kỳ lúc nào',
-    withdrawDescription: 'Bạn có thể ngắt kết nối ngân hàng ngay trong Monee hoặc trực tiếp tại ứng dụng ngân hàng của bạn.',
+    withdrawDescription:
+      'Bạn có thể ngắt kết nối ngân hàng ngay trong Monee hoặc trực tiếp tại ứng dụng ngân hàng của bạn.',
     searchBanks: 'Tìm kiếm ngân hàng khác (30+ đối tác)',
     manualEntry: 'Nhập thủ công không cần kết nối',
     helpTitle: 'Hỗ trợ kết nối',
     helpDescription: 'Monee sẽ hướng dẫn bạn kết nối an toàn.',
     connectedAlertTitle: 'Đã chọn kết nối',
-    connectedAlertDescription: 'Luồng kết nối {{provider}} sẽ được tích hợp ở bước tiếp theo.',
+    connectedAlertDescription:
+      'Luồng kết nối {{provider}} sẽ được tích hợp ở bước tiếp theo.',
     retryAlertDescription: 'Đang chuẩn bị xác thực lại kết nối MBBank.',
     searchAlertDescription: 'Danh sách ngân hàng mở rộng sẽ được cập nhật sớm.',
     providers: {
@@ -158,7 +245,9 @@ export const vi = {
     amountPlaceholder: '0',
     transactionName: 'Tên giao dịch',
     expensePlaceholder: 'Ví dụ: Ăn trưa',
-    incomePlaceholder: 'Ví dụ: Lương tháng 10',
+    incomePlaceholder: 'Ví dụ: Tiền thưởng',
+    salaryHint:
+      'Để ghi lương theo tháng và tránh cộng trùng, dùng luồng Ghi nhận lương.',
     category: 'Danh mục',
     account: 'Tài khoản',
     note: 'Ghi chú',
@@ -167,6 +256,8 @@ export const vi = {
     save: 'Lưu giao dịch',
     amountRequired: 'Nhập số tiền trước nhé.',
     titleRequired: 'Nhập tên giao dịch trước nhé.',
+    noAccount:
+      'Bạn chưa có ví. Tạo ví và nhập số dư trước khi ghi giao dịch nhé.',
   },
   categories: {
     food: 'Ăn uống',

@@ -1,18 +1,41 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { AppIcon, type AppIconName } from '@/shared/components/atoms/icons/AppIcon';
+import { Text, View } from 'react-native';
+import {
+  AppIcon,
+  type AppIconName,
+} from '@/shared/components/atoms/icons/AppIcon';
 import { Card } from '@/shared/components/atoms/Card';
-import { colors, spacing } from '@/shared/constants/theme';
+import { colors } from '@/shared/constants/theme';
+import { uiClasses } from '@/shared/styles/classes';
+import { cn } from '@/shared/styles/cn';
 
-type Props = { label: string; value: string; icon: AppIconName; tone: 'income' | 'expense' };
+type Props = {
+  label: string;
+  value: string;
+  icon: AppIconName;
+  tone: 'income' | 'expense';
+};
 
 export function StatCard({ label, value, icon, tone }: Props) {
   const isIncome = tone === 'income';
-  return <Card style={styles.card}><View style={[styles.icon, { backgroundColor: isIncome ? colors.incomeSoft : colors.expenseSoft }]}><AppIcon name={icon} size={18} color={isIncome ? colors.income : colors.expense} /></View><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></Card>;
+  return (
+    <Card className="flex-1 p-md">
+      <View
+        className={cn(
+          uiClasses.center,
+          'w-[30px] h-[30px] rounded-[10px] mb-2.5',
+          isIncome ? 'bg-incomeSoft' : 'bg-expenseSoft',
+        )}
+      >
+        <AppIcon
+          name={icon}
+          size={18}
+          color={isIncome ? colors.income : colors.expense}
+        />
+      </View>
+      <Text className="text-textMuted text-[12px] font-semibold">{label}</Text>
+      <Text className="mt-[5px] text-text text-[14px] font-extrabold">
+        {value}
+      </Text>
+    </Card>
+  );
 }
-
-const styles = StyleSheet.create({
-  card: { flex: 1, padding: spacing.md },
-  icon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  label: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
-  value: { marginTop: 5, color: colors.text, fontSize: 14, fontWeight: '800' },
-});

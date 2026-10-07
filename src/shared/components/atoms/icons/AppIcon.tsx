@@ -11,5 +11,7 @@ type Props = {
 };
 
 export function AppIcon({ name, size = 20, color = colors.primary }: Props) {
-  return <MaterialCommunityIcons name={name} size={size} color={color as string} />;
+  return (
+    <MaterialCommunityIcons name={name} size={size} color={color as string} />
+  );
 }

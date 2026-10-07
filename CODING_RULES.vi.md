@@ -23,7 +23,8 @@
 - Code dùng chung đặt trong `src/shared/`.
 - Atomic Design: `atoms`, `molecules`, `organisms`.
 - Icon chỉ đặt và dùng qua `src/shared/components/atoms/icons/`.
-- React/web dùng Tailwind; React Native dùng NativeWind sau khi repo được cấu hình.
+- React/web dùng Tailwind; React Native dùng NativeWind `className` / `contentContainerClassName` đã cấu hình trong repo.
+- Dùng token trong `tailwind.config.ts`, common class trong `src/shared/styles/classes.ts` và `cn()` cho variant. Chỉ giữ `style` cho giá trị động hoặc API navigator không nhận className.
 - Tạo hoặc mở rộng common styles/token trước khi viết custom CSS hoặc `StyleSheet` dài.
 - Không hardcode màu, spacing, radius, typography khi đã có token.
 - Tất cả text hiển thị cho user phải đi qua `useI18n()`.

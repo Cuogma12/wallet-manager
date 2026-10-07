@@ -1,14 +1,19 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, radii } from '@/shared/constants/theme';
+import { cn } from '@/shared/styles/cn';
+import { Pressable, Text } from 'react-native';
 
 type Props = {
   label: string;
   onPress?: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
   disabled?: boolean;
 };
 
-export function AppButton({ label, onPress, variant = 'primary', disabled = false }: Props) {
+export function AppButton({
+  label,
+  onPress,
+  variant = 'primary',
+  disabled = false,
+}: Props) {
   const isPrimary = variant === 'primary';
   return (
     <Pressable
@@ -16,20 +21,25 @@ export function AppButton({ label, onPress, variant = 'primary', disabled = fals
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, isPrimary ? styles.primary : styles.secondary, disabled && styles.disabled, pressed && styles.pressed]}
+      className={cn(
+        'items-center justify-center min-h-[52px] px-[18px] rounded-md',
+        variant === 'danger'
+          ? 'bg-error'
+          : isPrimary
+            ? 'bg-primary'
+            : 'bg-surface',
+        disabled && 'opacity-[0.5]',
+        'active:scale-[0.98]',
+      )}
     >
-      <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>{label}</Text>
+      <Text
+        className={cn(
+          'text-[14px] font-extrabold',
+          isPrimary || variant === 'danger' ? 'text-white' : 'text-primary',
+        )}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: { alignItems: 'center', justifyContent: 'center', minHeight: 52, paddingHorizontal: 18, borderRadius: radii.md },
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: colors.surface },
-  label: { fontSize: 14, fontWeight: '800' },
-  primaryLabel: { color: colors.white },
-  secondaryLabel: { color: colors.primary },
-  disabled: { opacity: 0.5 },
-  pressed: { transform: [{ scale: 0.98 }] },
-});

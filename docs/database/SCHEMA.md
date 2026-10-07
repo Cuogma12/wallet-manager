@@ -22,58 +22,84 @@ profiles
 
 ### profiles
 
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | TEXT | Local profile key, primary key |
-| `auth_user_id` | TEXT | Nullable Supabase Auth user ID, unique |
-| `device_id` | TEXT | Device identifier placeholder for sync metadata |
-| `sync_enabled` | INTEGER | `0` until online sync is enabled |
-| `created_at` | TEXT | ISO-8601 timestamp |
-| `updated_at` | TEXT | ISO-8601 timestamp |
+| Column         | Type    | Rule                                            |
+| -------------- | ------- | ----------------------------------------------- |
+| `id`           | TEXT    | Local profile key, primary key                  |
+| `auth_user_id` | TEXT    | Nullable Supabase Auth user ID, unique          |
+| `device_id`    | TEXT    | Device identifier placeholder for sync metadata |
+| `sync_enabled` | INTEGER | `0` until online sync is enabled                |
+| `created_at`   | TEXT    | ISO-8601 timestamp                              |
+| `updated_at`   | TEXT    | ISO-8601 timestamp                              |
 
 ### settings
 
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | INTEGER | Local row key |
-| `profile_id` | TEXT | Unique owner profile |
-| `initial_balance` | INTEGER | VND integer, never float |
-| `monthly_income` | INTEGER | Temporary legacy field; recurring income will replace it |
-| `salary_day` | INTEGER | Day of month |
-| `created_at` / `updated_at` | TEXT | ISO-8601 timestamps |
+| Column                      | Type    | Rule                                                                                        |
+| --------------------------- | ------- | ------------------------------------------------------------------------------------------- |
+| `id`                        | INTEGER | Local row key                                                                               |
+| `profile_id`                | TEXT    | Unique owner profile                                                                        |
+| `initial_balance`           | INTEGER | Legacy field; not an independent source of total assets. New profiles initialize it to zero |
+| `monthly_income`            | INTEGER | Temporary legacy field; recurring income will replace it                                    |
+| `salary_day`                | INTEGER | Day of month                                                                                |
+| `created_at` / `updated_at` | TEXT    | ISO-8601 timestamps                                                                         |
 
 ### accounts
 
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | TEXT | Client-generated stable ID |
-| `profile_id` | TEXT | Owner profile |
-| `name` | TEXT | Display name |
-| `type` | TEXT | `cash`, `bank`, or `wallet` |
-| `balance` | INTEGER | Cached display balance; transactions remain the audit source |
-| `icon` / `color` | TEXT | Presentation metadata |
-| `sync_status` | TEXT | Existing connection badge state |
-| `sync_state` | TEXT | `pending`, `synced`, or `failed` |
-| `external_id` | TEXT | Provider account ID when connected |
-| `created_at` / `updated_at` / `deleted_at` | TEXT | Sync and soft-delete metadata |
+| Column                                     | Type    | Rule                                                                                             |
+| ------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------ |
+| `id`                                       | TEXT    | Client-generated stable ID                                                                       |
+| `profile_id`                               | TEXT    | Owner profile                                                                                    |
+| `name`                                     | TEXT    | Display name                                                                                     |
+| `type`                                     | TEXT    | `cash`, `bank`, or `wallet`                                                                      |
+| `balance`                                  | INTEGER | Current balance in integer VND; sum these across active accounts for total assets                |
+| `opening_balance`                          | INTEGER | Balance baseline; `balance = opening_balance + active income - active expenses`. May be negative |
+| `is_demo`                                  | INTEGER | `1` only for a recognized, untouched legacy sample wallet; new or edited wallets have `0`        |
+| `icon` / `color`                           | TEXT    | Presentation metadata                                                                            |
+| `sync_status`                              | TEXT    | Existing connection badge state                                                                  |
+| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                 |
+| `external_id`                              | TEXT    | Provider account ID when connected                                                               |
+| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                    |
 
 ### transactions
 
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | TEXT | Client-generated stable ID |
-| `profile_id` | TEXT | Owner profile |
-| `account_id` | TEXT | Related financial account |
-| `type` | TEXT | `income`, `expense`, or `transfer` |
-| `amount` | INTEGER | Positive VND integer; direction comes from `type` |
-| `category` | TEXT | Stable key such as `food` or `salary`, never translated text |
-| `occurred_at` | TEXT | Actual transaction time |
-| `source` | TEXT | `manual`, `imported`, or `bank-api` |
-| `external_id` | TEXT | Provider transaction ID for de-duplication |
-| `sync_state` | TEXT | `pending`, `synced`, or `failed` |
-| `created_at` / `updated_at` / `deleted_at` | TEXT | Sync and soft-delete metadata |
+| Column                                     | Type    | Rule                                                                                                          |
+| ------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `id`                                       | TEXT    | Client-generated stable ID                                                                                    |
+| `profile_id`                               | TEXT    | Owner profile                                                                                                 |
+| `account_id`                               | TEXT    | Related financial account                                                                                     |
+| `type`                                     | TEXT    | `income`, `expense`, or `transfer`                                                                            |
+| `amount`                                   | INTEGER | Positive VND integer; direction comes from `type`                                                             |
+| `category`                                 | TEXT    | Stable key such as `food` or `salary`, never translated text                                                  |
+| `occurred_at`                              | TEXT    | Actual transaction time                                                                                       |
+| `source`                                   | TEXT    | `manual`, `imported`, or `bank-api`                                                                           |
+| `external_id`                              | TEXT    | Provider transaction ID for de-duplication                                                                    |
+| `salary_month`                             | TEXT    | Nullable local-calendar `YYYY-MM`, independent of receipt date. One active, non-demo salary per profile/month |
+| `is_demo`                                  | INTEGER | `1` only for an exact recognized legacy seed transaction                                                      |
+| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                              |
+| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                                 |
 
 The category icon is derived from the stable category key in code. It is not stored as authoritative financial data.
+
+## Financial setup rules (schema v3)
+
+- Fresh installations start with a local profile, zeroed legacy settings, and no sample accounts/transactions.
+- Creating a wallet sets both `balance` and `opening_balance`. It does not create an income transaction.
+- Editing its current balance rebases `opening_balance` after subtracting active transaction movement, preserving transaction history. It also adopts an old demo wallet as a real manual wallet.
+- Salary recording atomically inserts a manual income and updates the receiving wallet. If the user says salary is already included in the stated wallet balance, its balance is unchanged and the baseline is reduced instead.
+- Salary deduplication is profile-wide, not per wallet: `idx_salary_month` is unique on `(profile_id, salary_month)` for active, non-demo rows. The repository additionally checks legacy non-demo salary rows with null `salary_month` against local receipt-month boundaries.
+- Generic income entry uses category `other`; monthly salary uses the dedicated salary form. The receipt date must be a real date no later than today; salary month and receipt month may differ.
+- Every mutation validates integer money and the wallet owner, is serialized, and is committed/rolled back atomically. Native uses Expo's exclusive transaction handle; web uses a serialized transaction fallback. All repository reads share the same queue.
+
+### Explicit demo cleanup
+
+Only an affirmative UI confirmation runs cleanup. Tagged sample transactions get `deleted_at` tombstones; user transactions are never deleted. An untouched sample wallet with no real transactions is soft-deleted. If it has real transactions, keep the wallet, remove its sample baseline, and retain only real movement (which can produce a negative balance). Prompt the user to set its real current balance. A wallet already edited by the user retains its stated current balance; its baseline is rebased after sample transactions are hidden. New wallets and legacy settings are untouched. No SQLite file reset is performed; tombstones remain locally, but no restore UI exists yet.
+
+### Explicit full local reset
+
+The separate **Xóa toàn bộ dữ liệu** action requires a destructive confirmation. It hard-deletes all transactions (including salary and soft-deleted/demo rows) and wallets belonging to the current local profile, then zeroes its legacy money settings in one transaction. Other profiles, the local identity, schema, and source files are unchanged. It is never triggered by migrations or startup. Unlike demo cleanup, there are no tombstones to restore: recovery requires a pre-existing backup. It does not delete bank/e-wallet data or any future remote data; a synced production account will require a separate remote-reset workflow.
+
+### Upgrade safety
+
+Versions 1 and 2 upgrade in one transaction. Version 3 computes wallet baselines without altering current balances and recognizes samples by legacy IDs plus their content, never by age or source alone. It rebuilds the transaction table to normalize the schema and remove the obsolete v1 `category_icon NOT NULL` column that otherwise prevents new inserts. A failed migration rolls back the schema and version. Sample removal is never automatic during an upgrade.
 
 ## Online Supabase mapping
 

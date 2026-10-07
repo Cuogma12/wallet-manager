@@ -1,5 +1,9 @@
-import { Pressable, StyleSheet } from 'react-native';
-import { AppIcon, type AppIconName } from '@/shared/components/atoms/icons/AppIcon';
+import { cn } from '@/shared/styles/cn';
+import { Pressable } from 'react-native';
+import {
+  AppIcon,
+  type AppIconName,
+} from '@/shared/components/atoms/icons/AppIcon';
 import { colors } from '@/shared/constants/theme';
 
 type Props = {
@@ -9,25 +13,38 @@ type Props = {
   color?: string;
   size?: number;
   variant?: 'surface' | 'primary';
+  disabled?: boolean;
 };
 
-export function IconButton({ name, onPress, accessibilityLabel, color, size = 20, variant = 'surface' }: Props) {
+export function IconButton({
+  name,
+  onPress,
+  accessibilityLabel,
+  color,
+  size = 20,
+  variant = 'surface',
+  disabled = false,
+}: Props) {
   const isPrimary = variant === 'primary';
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, isPrimary ? styles.primary : styles.surface, pressed && styles.pressed]}
+      className={cn(
+        'w-11 h-11 items-center justify-center rounded-[14px]',
+        isPrimary ? 'bg-primary' : 'bg-surface',
+        'active:opacity-[0.7]',
+        disabled && 'opacity-50',
+      )}
     >
-      <AppIcon name={name} size={size} color={color ?? (isPrimary ? colors.white : colors.primary)} />
+      <AppIcon
+        name={name}
+        size={size}
+        color={color ?? (isPrimary ? colors.white : colors.primary)}
+      />
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  button: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-  surface: { backgroundColor: colors.surface },
-  primary: { backgroundColor: colors.primary },
-  pressed: { opacity: 0.7 },
-});

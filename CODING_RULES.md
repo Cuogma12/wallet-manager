@@ -125,7 +125,9 @@ src/shared/
 ## 5. Styling rules
 
 - For React/web UI, use Tailwind utility classes.
-- For React Native, use the repository's Tailwind-compatible NativeWind setup once configured; do not introduce long custom `StyleSheet` blocks in new components.
+- For React Native, use NativeWind `className` and `contentContainerClassName` for all static UI styles. NativeWind is configured in this repository.
+- Reuse semantic theme utilities from `tailwind.config.ts`, layout/card primitives from `src/shared/styles/classes.ts`, and `cn()` to merge conditional variants.
+- Reserve the `style` prop for runtime values such as account colors, progress widths, chart heights, or navigator options that have no className API. Do not add `StyleSheet.create` to UI components.
 - Create or extend shared styles/tokens first in `src/shared/styles/` before adding one-off styling.
 - Prefer shared Tailwind classes, semantic tokens, and component variants over arbitrary values.
 - Avoid inline style objects for repeated patterns.

@@ -1,3 +1,3 @@
-export const DB_SCHEMA_VERSION = 2;
+export const DB_SCHEMA_VERSION = 3;
 export const LOCAL_PROFILE_ID = 'local-profile';
 export const LOCAL_DEVICE_ID = 'local-device';

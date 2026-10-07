@@ -1,5 +1,5 @@
-import { StyleSheet, Text } from 'react-native';
-import { colors, radii } from '@/shared/constants/theme';
+import { cn } from '@/shared/styles/cn';
+import { Text } from 'react-native';
 
 type Props = {
   label: string;
@@ -7,12 +7,18 @@ type Props = {
 };
 
 export function Badge({ label, tone = 'neutral' }: Props) {
-  return <Text style={[styles.badge, tone === 'warning' ? styles.warning : tone === 'success' ? styles.success : styles.neutral]}>{label}</Text>;
+  return (
+    <Text
+      className={cn(
+        'rounded-pill px-1.5 py-0.5 text-[9px] font-bold',
+        tone === 'warning'
+          ? 'text-warning bg-warningSoft'
+          : tone === 'success'
+            ? 'text-income bg-incomeSoft'
+            : 'text-textMuted bg-surfaceMuted',
+      )}
+    >
+      {label}
+    </Text>
+  );
 }
-
-const styles = StyleSheet.create({
-  badge: { borderRadius: radii.pill, paddingHorizontal: 6, paddingVertical: 2, fontSize: 9, fontWeight: '700' },
-  warning: { color: colors.warning, backgroundColor: colors.warningSoft },
-  success: { color: colors.income, backgroundColor: colors.incomeSoft },
-  neutral: { color: colors.textMuted, backgroundColor: colors.surfaceMuted },
-});
