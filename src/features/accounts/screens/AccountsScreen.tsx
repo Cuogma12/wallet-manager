@@ -2,10 +2,8 @@ import { cn } from '@/shared/styles/cn';
 import { uiClasses } from '@/shared/styles/classes';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
-import {
-  AppIcon,
-  type AppIconName,
-} from '@/shared/components/atoms/icons/AppIcon';
+import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
+import { InstitutionIcon } from '@/shared/components/atoms/icons/InstitutionIcon';
 import { IconButton } from '@/shared/components/atoms/IconButton';
 import { AppButton } from '@/shared/components/atoms/AppButton';
 import { Badge } from '@/shared/components/atoms/Badge';
@@ -134,16 +132,10 @@ export default function AccountsScreen() {
             onPress={() => model.editAccount(account.id)}
             className={cn(uiClasses.row, 'mb-2.5 p-md rounded-md bg-surface')}
           >
-            <View
-              className="w-11 h-11 items-center justify-center rounded-[14px]"
-              style={{ backgroundColor: `${account.color}1A` }}
-            >
-              <AppIcon
-                name={account.icon as AppIconName}
-                size={22}
-                color={account.color}
-              />
-            </View>
+            <InstitutionIcon
+              providerId={account.providerId}
+              type={account.type}
+            />
             <View className="flex-1 ml-3">
               <View className={cn(uiClasses.row, 'gap-sm')}>
                 <Text className="shrink text-text text-[14px] font-extrabold">

@@ -5,6 +5,7 @@ export type Account = {
   id: string;
   name: string;
   type: AccountType;
+  providerId?: string;
   balance: number;
   icon: string;
   color: string;
@@ -51,6 +52,8 @@ export type SaveAccount = {
   name: string;
   type: AccountType;
   balance: number;
+  /** Omitted: retain the existing provider for the same type. Null: choose Other. */
+  providerId?: string | null;
 };
 
 export type UpdateTransaction = NewTransaction & {

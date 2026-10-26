@@ -18,7 +18,7 @@ export function exportBackup(db: FinanceDatabase): Promise<FinanceBackup> {
     const accounts = await db.getAllAsync<
       Omit<BackupAccount, 'isDemo'> & { isDemo: number }
     >(
-      `SELECT id, name, type, balance, opening_balance AS openingBalance, is_demo AS isDemo
+      `SELECT id, name, type, balance, opening_balance AS openingBalance, is_demo AS isDemo, provider_id AS providerId
        FROM accounts WHERE profile_id = ? AND deleted_at IS NULL ORDER BY id`,
       LOCAL_PROFILE_ID,
     );
@@ -43,7 +43,11 @@ export function exportBackup(db: FinanceDatabase): Promise<FinanceBackup> {
       currency: 'VND',
       createdAt: new Date().toISOString(),
       settings,
-      accounts: accounts.map((row) => ({ ...row, isDemo: row.isDemo === 1 })),
+      accounts: accounts.map((row) => ({
+        ...row,
+        providerId: row.providerId ?? undefined,
+        isDemo: row.isDemo === 1,
+      })),
       transactions: transactions.map((row) => ({
         ...row,
         isDemo: row.isDemo === 1,
@@ -96,8 +100,8 @@ export async function restoreBackup(db: FinanceDatabase, value: unknown) {
     for (const account of backup.accounts) {
       const metadata = accountTypes.find((item) => item.type === account.type)!;
       await tx.runAsync(
-        `INSERT INTO accounts (id, profile_id, name, type, balance, opening_balance, icon, color, sync_status, sync_state, created_at, updated_at, is_demo)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'local', 'pending', ?, ?, ?)`,
+        `INSERT INTO accounts (id, profile_id, name, type, balance, opening_balance, icon, color, provider_id, sync_status, sync_state, created_at, updated_at, is_demo)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'local', 'pending', ?, ?, ?)`,
         account.id,
         LOCAL_PROFILE_ID,
         account.name,
@@ -106,6 +110,7 @@ export async function restoreBackup(db: FinanceDatabase, value: unknown) {
         account.openingBalance,
         metadata.icon,
         metadata.color,
+        account.providerId ?? null,
         timestamp,
         timestamp,
         account.isDemo ? 1 : 0,

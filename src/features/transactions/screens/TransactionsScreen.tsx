@@ -1,4 +1,5 @@
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
+import { AppInput } from '@/shared/components/atoms/AppInput';
 import { useTransactions } from '@/features/transactions/hooks/useTransactions';
 import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
 import { AppButton } from '@/shared/components/atoms/AppButton';
@@ -8,6 +9,7 @@ import { useI18n } from '@/shared/i18n';
 import { colors } from '@/shared/constants/theme';
 import { uiClasses } from '@/shared/styles/classes';
 import { cn } from '@/shared/styles/cn';
+import { inputScrollProps } from '@/shared/constants/inputBehavior';
 
 export default function TransactionsScreen() {
   const list = useTransactions();
@@ -18,8 +20,7 @@ export default function TransactionsScreen() {
         data={list.filteredTransactions}
         keyExtractor={(transaction) => transaction.id}
         contentContainerClassName="p-xl pb-32"
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+        {...inputScrollProps}
         ListHeaderComponent={
           <View className="gap-lg pb-md">
             <View className="gap-sm">
@@ -47,7 +48,7 @@ export default function TransactionsScreen() {
               label={t('overview.currentMonth')}
               onPress={list.currentMonth}
             />
-            <TextInput
+            <AppInput
               accessibilityLabel={t('transactions.searchPlaceholder')}
               value={list.search}
               onChangeText={list.setSearch}

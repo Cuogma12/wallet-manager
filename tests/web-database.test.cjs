@@ -64,7 +64,7 @@ test('browser SQLite persists schema, ledger and balances and reopens with forei
   );
   assert.equal(
     (await reopened.getFirstAsync('PRAGMA user_version')).user_version,
-    3,
+    4,
   );
   const revision = store.revision;
   await migrateDbIfNeeded(reopened);

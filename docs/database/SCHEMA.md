@@ -45,20 +45,21 @@ profiles
 
 ### accounts
 
-| Column                                     | Type    | Rule                                                                                             |
-| ------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------ |
-| `id`                                       | TEXT    | Client-generated stable ID                                                                       |
-| `profile_id`                               | TEXT    | Owner profile                                                                                    |
-| `name`                                     | TEXT    | Display name                                                                                     |
-| `type`                                     | TEXT    | `cash`, `bank`, or `wallet`                                                                      |
-| `balance`                                  | INTEGER | Current balance in integer VND; sum these across active accounts for total assets                |
-| `opening_balance`                          | INTEGER | Balance baseline; `balance = opening_balance + active income - active expenses`. May be negative |
-| `is_demo`                                  | INTEGER | `1` only for a recognized, untouched legacy sample wallet; new or edited wallets have `0`        |
-| `icon` / `color`                           | TEXT    | Presentation metadata                                                                            |
-| `sync_status`                              | TEXT    | Existing connection badge state                                                                  |
-| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                 |
-| `external_id`                              | TEXT    | Provider account ID when connected                                                               |
-| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                    |
+| Column                                     | Type    | Rule                                                                                                                            |
+| ------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                                       | TEXT    | Client-generated stable ID                                                                                                      |
+| `profile_id`                               | TEXT    | Owner profile                                                                                                                   |
+| `name`                                     | TEXT    | Display name                                                                                                                    |
+| `type`                                     | TEXT    | `cash`, `bank`, or `wallet`                                                                                                     |
+| `provider_id`                              | TEXT    | Nullable stable offline catalog key, e.g. `mbbank` or `momo`. Not a bank account ID or proof of API authorization. Added in v4. |
+| `balance`                                  | INTEGER | Current balance in integer VND; sum these across active accounts for total assets                                               |
+| `opening_balance`                          | INTEGER | Balance baseline; `balance = opening_balance + active income - active expenses`. May be negative                                |
+| `is_demo`                                  | INTEGER | `1` only for a recognized, untouched legacy sample wallet; new or edited wallets have `0`                                       |
+| `icon` / `color`                           | TEXT    | Presentation metadata                                                                                                           |
+| `sync_status`                              | TEXT    | Existing connection badge state                                                                                                 |
+| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                                                |
+| `external_id`                              | TEXT    | Provider account ID when connected                                                                                              |
+| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                                                   |
 
 ### transactions
 
@@ -112,6 +113,15 @@ The separate **Xóa toàn bộ dữ liệu** action requires a destructive confi
 ### Upgrade safety
 
 Versions 1 and 2 upgrade in one transaction. Version 3 computes wallet baselines without altering current balances and recognizes samples by legacy IDs plus their content, never by age or source alone. It rebuilds the transaction table to normalize the schema and remove the obsolete v1 `category_icon NOT NULL` column that otherwise prevents new inserts. A failed migration rolls back the schema and version. Sample removal is never automatic during an upgrade.
+
+### Offline bank/wallet catalog (schema v4)
+
+- Version 4 adds nullable `accounts.provider_id` in the same forward-migration transaction. Existing wallets retain their names, balances, ownership, transactions and null provider. Never infer a provider from a name or seed identity.
+- The bundled catalog contains 20 banks and 5 wallets. It is identification metadata, not an integration capability list. Choosing one creates a normal local wallet with no login, external ID, background requests or bank synchronization.
+- Provider identity is separate from the editable wallet nickname. Known provider/type mismatches are rejected before writes. Two wallets may use the same provider. Explicit `null` selects Other; omitted provider on same-type edits preserves identity; changing type clears identity unless a valid replacement is supplied.
+- Logos are bundled through the shared icon layer, including the PWA shell cache. Unknown IDs use a generic icon and are never interpreted as URLs. See [catalog sources and test checklist](../account-providers.md).
+- Portable backup v1 adds optional `providerId`; old files without it still restore. Unknown future IDs are retained for round-trip safety, but cannot be newly assigned through the form/repository. Known type mismatches or any provider on cash are rejected. Restore never turns a local wallet into a connected one.
+- Future remote `accounts` should preserve the same nullable `provider_id` separately from `external_id`; no Supabase table or online synchronization is created by this change.
 
 ## Online Supabase mapping
 

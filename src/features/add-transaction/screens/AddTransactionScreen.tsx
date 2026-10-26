@@ -6,13 +6,14 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
 import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
 import { AppButton } from '@/shared/components/atoms/AppButton';
+import { AppInput } from '@/shared/components/atoms/AppInput';
 import { colors } from '@/shared/constants/theme';
+import { inputScrollProps } from '@/shared/constants/inputBehavior';
 import { useAddTransaction } from '@/features/add-transaction/hooks/useAddTransaction';
 import { AccountPicker } from '@/shared/components/molecules/AccountPicker';
 import { CategoryPicker } from '@/shared/components/molecules/CategoryPicker';
@@ -46,8 +47,7 @@ export default function AddTransactionScreen() {
       >
         <ScrollView
           contentContainerClassName="p-xl pb-11"
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          {...inputScrollProps}
           showsVerticalScrollIndicator={false}
         >
           <View className={uiClasses.rowBetween}>
@@ -86,8 +86,13 @@ export default function AddTransactionScreen() {
             <Text className="text-textMuted text-[10px] font-extrabold tracking-[1px]">
               {t('add.amount')}
             </Text>
-            <View className={cn(uiClasses.row, 'mt-1')}>
-              <TextInput
+            <View
+              className={cn(
+                uiClasses.row,
+                'mt-1 w-full min-w-0 justify-center',
+              )}
+            >
+              <AppInput
                 accessibilityLabel={t('add.amount')}
                 editable={!form.isSaving}
                 autoFocus
@@ -96,9 +101,9 @@ export default function AddTransactionScreen() {
                 keyboardType="numeric"
                 placeholder={t('add.amountPlaceholder')}
                 placeholderTextColor={colors.textSubtle}
-                className="min-w-[120px] text-text text-[38px] font-extrabold text-right"
+                className={uiClasses.amountInput}
               />
-              <Text className="ml-2 text-textMuted text-[20px] font-bold">
+              <Text className="ml-2 shrink-0 text-textMuted text-[20px] font-bold">
                 {t('common.vnd')}
               </Text>
             </View>
@@ -106,7 +111,7 @@ export default function AddTransactionScreen() {
           <Text className="mt-[22px] mb-[9px] text-text text-[13px] font-extrabold">
             {t('add.transactionName')}
           </Text>
-          <TextInput
+          <AppInput
             accessibilityLabel={t('add.transactionName')}
             editable={!form.isSaving}
             value={title}
@@ -117,7 +122,7 @@ export default function AddTransactionScreen() {
                 : t('add.expensePlaceholder')
             }
             placeholderTextColor={colors.textSubtle}
-            className="px-[15px] h-[50px] rounded-[14px] bg-surface text-text text-[14px]"
+            className={uiClasses.formInput}
           />
           {type === 'expense' && (
             <View className="mt-lg">
@@ -154,17 +159,14 @@ export default function AddTransactionScreen() {
               {t('add.optional')}
             </Text>
           </Text>
-          <TextInput
+          <AppInput
             accessibilityLabel={t('add.note')}
             editable={!form.isSaving}
             value={note}
             onChangeText={setNote}
             placeholder={t('add.notePlaceholder')}
             placeholderTextColor={colors.textSubtle}
-            className={cn(
-              'px-[15px] h-[50px] rounded-[14px] bg-surface text-text text-[14px]',
-              'h-[78px] pt-3.5 align-top',
-            )}
+            className={cn(uiClasses.formInput, 'h-[78px] pt-3.5 align-top')}
             multiline
           />
           {error ? (

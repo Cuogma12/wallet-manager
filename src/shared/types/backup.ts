@@ -9,6 +9,7 @@ export type BackupAccount = {
   id: string;
   name: string;
   type: AccountType;
+  providerId?: string;
   balance: number;
   openingBalance: number;
   isDemo: boolean;

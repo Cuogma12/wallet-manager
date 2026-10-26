@@ -1,8 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
-import {
-  AppIcon,
-  type AppIconName,
-} from '@/shared/components/atoms/icons/AppIcon';
+import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
+import { InstitutionIcon } from '@/shared/components/atoms/icons/InstitutionIcon';
 import { colors } from '@/shared/constants/theme';
 import type { Account } from '@/shared/types/finance';
 import { uiClasses } from '@/shared/styles/classes';
@@ -38,10 +36,9 @@ export function AccountPicker({
             selectedId === account.id && 'bg-primarySoft',
           )}
         >
-          <AppIcon
-            name={account.icon as AppIconName}
-            color={colors.primary}
-            size={22}
+          <InstitutionIcon
+            providerId={account.providerId}
+            type={account.type}
           />
           <Text className="flex-1 text-text font-semibold">{account.name}</Text>
           {selectedId === account.id && (

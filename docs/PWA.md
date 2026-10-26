@@ -39,7 +39,7 @@ Safari, PWA cài riêng, Expo Go và app native có thể có các vùng lưu tr
 
 ## Cách lưu và bảo vệ dữ liệu
 
-- Native vẫn dùng `expo-sqlite`, file `monee.db` và schema v3.
+- Native vẫn dùng `expo-sqlite`, file `monee.db`; schema v4 thêm mã ngân hàng/ví tùy chọn và giữ nguyên dữ liệu cũ.
 - Web dùng SQLite WASM (`sql.js`, chỉ bundle vào web) và lưu ảnh DB vào IndexedDB `monee-finance` / store `snapshots` / key `finance`. Dùng cùng schema, migration và repository, không viết lại phép tính tiền.
 - Một thao tác chỉ thành công sau khi transaction IndexedDB báo `complete`. Nếu SQL hoặc ghi bộ nhớ lỗi, ảnh DB trước đó được phục hồi trong phiên hiện tại và bản lưu cũ vẫn còn. Không có fallback “lưu tạm thành công” khi bộ nhớ trình duyệt lỗi.
 - Có kiểm tra revision trong cùng transaction IndexedDB. Tab cũ không ghi đè được dữ liệu mới của tab khác; app yêu cầu tải lại. Khi thấy cảnh báo, giữ nội dung chưa lưu rồi reload, không bấm lưu lặp lại.

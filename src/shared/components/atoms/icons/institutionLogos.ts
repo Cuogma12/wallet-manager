@@ -1,0 +1,30 @@
+import type { ImageSourcePropType } from 'react-native';
+
+// Metro needs literal paths for bundled offline assets.
+export const institutionLogos: Record<string, ImageSourcePropType> = {
+  mbbank: require('./assets/institutions/mbbank.png'),
+  vietcombank: require('./assets/institutions/vietcombank.png'),
+  vietinbank: require('./assets/institutions/vietinbank.png'),
+  bidv: require('./assets/institutions/bidv.png'),
+  agribank: require('./assets/institutions/agribank.png'),
+  techcombank: require('./assets/institutions/techcombank.png'),
+  acb: require('./assets/institutions/acb.png'),
+  vpbank: require('./assets/institutions/vpbank.png'),
+  tpbank: require('./assets/institutions/tpbank.png'),
+  sacombank: require('./assets/institutions/sacombank.png'),
+  hdbank: require('./assets/institutions/hdbank.png'),
+  vib: require('./assets/institutions/vib.png'),
+  shb: require('./assets/institutions/shb.png'),
+  msb: require('./assets/institutions/msb.png'),
+  ocb: require('./assets/institutions/ocb.png'),
+  eximbank: require('./assets/institutions/eximbank.png'),
+  lpbank: require('./assets/institutions/lpbank.png'),
+  seabank: require('./assets/institutions/seabank.png'),
+  shinhan: require('./assets/institutions/shinhan.png'),
+  cake: require('./assets/institutions/cake.png'),
+  momo: require('./assets/institutions/momo.png'),
+  zalopay: require('./assets/institutions/zalopay.png'),
+  shopeepay: require('./assets/institutions/shopeepay.png'),
+  viettelmoney: require('./assets/institutions/viettelmoney.png'),
+  vnptmoney: require('./assets/institutions/vnptmoney.png'),
+};

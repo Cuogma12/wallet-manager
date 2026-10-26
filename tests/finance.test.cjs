@@ -42,7 +42,7 @@ test('fresh install has no demo and repeated initialization keeps user data', as
   });
   await migrateDbIfNeeded(db);
   assert.equal((await repo.loadFinance(db)).accounts[0].id, id);
-  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 3);
+  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 4);
   assert.equal(db.raw.prepare('PRAGMA foreign_keys').get().foreign_keys, 1);
 });
 

@@ -3,6 +3,7 @@ import type {
   BackupTransaction,
   FinanceBackup,
 } from '@/shared/types/backup';
+import { getAccountProvider } from '@/shared/constants/accountProviders';
 import {
   assertMoney,
   assertMonth,
@@ -68,10 +69,19 @@ export function parseBackup(value: unknown): FinanceBackup {
       if (!['cash', 'bank', 'wallet'].includes(String(row.type))) fail();
       const name = string(row.name, 200).trim();
       if (!name) fail();
+      const providerId =
+        row.providerId === undefined ? undefined : id(row.providerId);
+      const provider = getAccountProvider(providerId);
+      if (
+        providerId &&
+        (row.type === 'cash' || (provider && provider.type !== row.type))
+      )
+        fail();
       return {
         id: id(row.id),
         name,
         type: row.type as BackupAccount['type'],
+        ...(providerId ? { providerId } : {}),
         balance: money(row.balance, true),
         openingBalance: money(row.openingBalance, true),
         isDemo: flag(row.isDemo),

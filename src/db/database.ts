@@ -35,7 +35,15 @@ export async function migrateDbIfNeeded(db: FinanceDatabase) {
         await migrateV1ToV2(db);
         currentVersion = 2;
       }
-      if (currentVersion === 2) await migrateV2ToV3(db);
+      if (currentVersion === 2) {
+        await migrateV2ToV3(db);
+        currentVersion = 3;
+      }
+      if (currentVersion === 3) {
+        // Catalog identity is optional and distinct from an external bank account ID.
+        // Never guess providers from names or modify balances during an upgrade.
+        await db.execAsync('ALTER TABLE accounts ADD COLUMN provider_id TEXT;');
+      }
       await db.execAsync(`PRAGMA user_version = ${DB_SCHEMA_VERSION}`);
     });
   } finally {

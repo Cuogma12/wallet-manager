@@ -11,6 +11,7 @@ import { IconButton } from '@/shared/components/atoms/IconButton';
 import { useI18n } from '@/shared/i18n';
 import { uiClasses } from '@/shared/styles/classes';
 import { cn } from '@/shared/styles/cn';
+import { inputScrollProps } from '@/shared/constants/inputBehavior';
 
 export function FormScreen({
   title,
@@ -31,8 +32,7 @@ export function FormScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
+          {...inputScrollProps}
           contentContainerClassName={cn(
             uiClasses.screenContent,
             'gap-lg pb-12',

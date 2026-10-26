@@ -6,6 +6,7 @@ import {
   type FinanceDatabase,
 } from '@/db/operations';
 import { accountTypes } from '@/shared/constants/accountTypes';
+import { getAccountProvider } from '@/shared/constants/accountProviders';
 import {
   expenseCategories,
   getCategoryIcon,
@@ -36,6 +37,7 @@ type AccountRow = {
   color: string;
   sync_status: Account['syncStatus'];
   is_demo: number;
+  provider_id: string | null;
 };
 type TransactionRow = {
   id: string;
@@ -75,6 +77,7 @@ export function loadFinance(db: FinanceDatabase) {
         id: row.id,
         name: row.name,
         type: row.type,
+        providerId: row.provider_id ?? undefined,
         balance: row.balance,
         icon: row.icon,
         color: row.color,
@@ -137,12 +140,43 @@ export async function saveAccount(db: FinanceDatabase, input: SaveAccount) {
   return writeDatabase(db, async (tx) => {
     const timestamp = new Date().toISOString();
     const id = input.id ?? createClientId('account');
+    if (input.id) await requireAccount(tx, id);
+    const existing = input.id
+      ? await tx.getFirstAsync<{
+          type: Account['type'];
+          provider_id: string | null;
+        }>(
+          'SELECT type, provider_id FROM accounts WHERE id = ? AND profile_id = ?',
+          id,
+          LOCAL_PROFILE_ID,
+        )
+      : null;
+    const providerId =
+      input.providerId === undefined
+        ? existing?.type === input.type
+          ? existing.provider_id
+          : null
+        : input.providerId;
+    const provider = getAccountProvider(providerId);
+    // Unknown IDs from a newer backup may be retained, but not newly assigned.
+    const retainedUnknown =
+      providerId &&
+      !provider &&
+      existing?.type === input.type &&
+      existing.provider_id === providerId;
+    if (
+      providerId !== null &&
+      (!provider || provider.type !== input.type) &&
+      !retainedUnknown
+    )
+      throw new FinanceError('invalidAccountProvider');
+    if (input.type === 'cash' && providerId !== null)
+      throw new FinanceError('invalidAccountProvider');
     if (input.id) {
-      await requireAccount(tx, id);
       const openingBalance = input.balance - (await transactionDelta(tx, id));
       assertMoney(openingBalance, true);
       await tx.runAsync(
-        `UPDATE accounts SET name = ?, type = ?, balance = ?, opening_balance = ?, icon = ?, color = ?,
+        `UPDATE accounts SET name = ?, type = ?, balance = ?, opening_balance = ?, icon = ?, color = ?, provider_id = ?,
          is_demo = 0, sync_status = 'local', sync_state = 'pending', updated_at = ? WHERE id = ? AND profile_id = ?`,
         input.name.trim(),
         input.type,
@@ -150,15 +184,16 @@ export async function saveAccount(db: FinanceDatabase, input: SaveAccount) {
         openingBalance,
         metadata.icon,
         metadata.color,
+        providerId,
         timestamp,
         id,
         LOCAL_PROFILE_ID,
       );
     } else {
       await tx.runAsync(
-        `INSERT INTO accounts (id, profile_id, name, type, balance, opening_balance, icon, color,
+        `INSERT INTO accounts (id, profile_id, name, type, balance, opening_balance, icon, color, provider_id,
          sync_status, sync_state, created_at, updated_at, is_demo)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'local', 'pending', ?, ?, 0)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'local', 'pending', ?, ?, 0)`,
         id,
         LOCAL_PROFILE_ID,
         input.name.trim(),
@@ -167,6 +202,7 @@ export async function saveAccount(db: FinanceDatabase, input: SaveAccount) {
         input.balance,
         metadata.icon,
         metadata.color,
+        providerId,
         timestamp,
         timestamp,
       );
