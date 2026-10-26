@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSQLiteContext } from 'expo-sqlite';
+import { useDatabase } from '@/context/DatabaseContext';
 import * as repository from '@/db/repositories/financeRepository';
 import type {
   NewSalary,
   NewTransaction,
   SaveAccount,
+  UpdateTransaction,
 } from '@/shared/types/finance';
 
 export function useFinanceStore() {
-  const db = useSQLiteContext();
+  const db = useDatabase();
   const [data, setData] = useState<
     Awaited<ReturnType<typeof repository.loadFinance>>
   >({ accounts: [], transactions: [], settings: null });
@@ -45,6 +46,20 @@ export function useFinanceStore() {
     },
     [db, refresh],
   );
+  const updateTransaction = useCallback(
+    async (input: UpdateTransaction) => {
+      await repository.updateTransaction(db, input);
+      await refresh();
+    },
+    [db, refresh],
+  );
+  const deleteTransaction = useCallback(
+    async (id: string) => {
+      await repository.deleteTransaction(db, id);
+      await refresh();
+    },
+    [db, refresh],
+  );
   const recordSalary = useCallback(
     async (input: NewSalary) => {
       await repository.recordSalary(db, input);
@@ -67,6 +82,8 @@ export function useFinanceStore() {
       loadError,
       refresh,
       addTransaction,
+      updateTransaction,
+      deleteTransaction,
       saveAccount,
       recordSalary,
       clearDemoData,
@@ -78,6 +95,8 @@ export function useFinanceStore() {
       loadError,
       refresh,
       addTransaction,
+      updateTransaction,
+      deleteTransaction,
       saveAccount,
       recordSalary,
       clearDemoData,

@@ -50,6 +50,12 @@ export default function AccountsScreen() {
         )}
         <View className="mt-md gap-sm">
           <AppButton
+            label={t('backup.title')}
+            onPress={model.openSettings}
+            variant="secondary"
+            disabled={model.isSaving}
+          />
+          <AppButton
             label={t('accounts.recordSalary')}
             onPress={model.openSalary}
             disabled={model.isSaving}

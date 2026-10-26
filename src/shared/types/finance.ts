@@ -53,6 +53,11 @@ export type SaveAccount = {
   balance: number;
 };
 
+export type UpdateTransaction = NewTransaction & {
+  id: string;
+  salaryMonth?: string;
+};
+
 export type NewSalary = {
   accountId: string;
   amount: number;

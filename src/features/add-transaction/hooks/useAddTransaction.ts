@@ -30,6 +30,10 @@ export function useAddTransaction() {
   function changeAmount(value: string) {
     setAmount(value);
   }
+  function changeCategory(key: string) {
+    const next = expenseCategories.find((item) => item.key === key);
+    if (next) setCategory(next);
+  }
   function openSalary() {
     router.push('/salary');
   }
@@ -58,7 +62,7 @@ export function useAddTransaction() {
     title,
     setTitle,
     category,
-    setCategory,
+    changeCategory,
     accountId,
     setAccountId,
     note,

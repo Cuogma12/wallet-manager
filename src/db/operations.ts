@@ -1,15 +1,20 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
 import { Platform } from 'react-native';
 
-export type FinanceDatabase = Pick<
-  SQLiteDatabase,
-  | 'getFirstAsync'
-  | 'getAllAsync'
-  | 'runAsync'
-  | 'execAsync'
-  | 'withTransactionAsync'
-  | 'withExclusiveTransactionAsync'
->;
+export type BindValue = string | number | null | Uint8Array;
+/** Minimal repository contract shared by native SQLite and the durable browser adapter. */
+export interface FinanceDatabase {
+  getFirstAsync<T>(sql: string, ...params: BindValue[]): Promise<T | null>;
+  getAllAsync<T>(sql: string, ...params: BindValue[]): Promise<T[]>;
+  runAsync(
+    sql: string,
+    ...params: BindValue[]
+  ): Promise<{ changes: number; lastInsertRowId: number }>;
+  execAsync(sql: string): Promise<void>;
+  withTransactionAsync(task: () => Promise<void>): Promise<void>;
+  withExclusiveTransactionAsync(
+    task: (tx: FinanceDatabase) => Promise<void>,
+  ): Promise<void>;
+}
 
 const queues = new WeakMap<FinanceDatabase, Promise<unknown>>();
 

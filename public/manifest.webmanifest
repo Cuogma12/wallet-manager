@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Monee",
+  "short_name": "Monee",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F8F4",
+  "theme_color": "#173F35",
+  "icons": [
+    {
+      "src": "/icons/app.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

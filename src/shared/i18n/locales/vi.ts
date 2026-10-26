@@ -20,7 +20,69 @@ export const vi = {
     budgets: 'Ngân sách',
     accounts: 'Ví',
   },
+  pwa: {
+    title: 'Cài Monee trên iPhone',
+    noScript:
+      'Bật JavaScript để mở Monee. Dữ liệu tài chính chỉ được lưu trên thiết bị này.',
+    installHelp:
+      'Mở link HTTPS bằng Safari → Chia sẻ → Thêm vào màn hình chính → Mở dưới dạng ứng dụng. Chờ trạng thái “Sẵn sàng offline” trước khi tắt mạng. Lần đầu và lúc cập nhật cần có mạng.',
+    storageUnavailable: 'Chưa mở được bộ nhớ bền vững của trình duyệt.',
+    storageHelp:
+      'Dùng Safari mới, không dùng chế độ riêng tư và kiểm tra dung lượng máy. Website phải dùng HTTPS và trình duyệt phải cho phép IndexedDB. Không có dữ liệu nào được tự động xóa hoặc chuyển sang lưu tạm. Khi chạy local, dùng npm run build:web rồi npm run preview:web.',
+    keepStorage: 'Yêu cầu giữ dữ liệu trên máy',
+    persisted:
+      'Trình duyệt đã cấp lưu trữ bền vững. Bạn vẫn cần sao lưu; xóa dữ liệu website hoặc gỡ app có thể làm mất dữ liệu.',
+    notPersisted:
+      'Chưa được cấp lưu trữ bền vững. Trình duyệt có thể dọn dữ liệu khi thiếu dung lượng. Hãy sao lưu thường xuyên.',
+    update: 'Cập nhật và tải lại',
+    updateHint:
+      'Có bản mới. Lưu công việc và xuất bản sao lưu trước khi tải lại; app không tự reload khi bạn đang nhập liệu.',
+    status: {
+      native: 'Bản app cài trực tiếp',
+      development:
+        'Chế độ lập trình: chưa cài bộ nhớ offline. Dùng bản web đã build để kiểm tra PWA.',
+      installing:
+        'Đang lưu các tệp của app để dùng offline. Giữ kết nối mạng đến khi hoàn tất.',
+      ready:
+        'Sẵn sàng offline — dữ liệu tiền bạc lưu riêng trên thiết bị, chưa đồng bộ online.',
+      unavailable:
+        'Trình duyệt hoặc kết nối hiện tại chưa hỗ trợ cài offline. Hãy mở link HTTPS trong Safari.',
+      error:
+        'Chưa lưu đủ tệp để chạy offline. Giữ mạng và mở lại app để thử lại; dữ liệu tài chính không bị xóa.',
+    },
+  },
+  backup: {
+    title: 'Sao lưu & cài ứng dụng',
+    export: 'Xuất bản sao lưu',
+    import: 'Chọn tệp khôi phục',
+    warning:
+      'Bản sao lưu JSON không mã hóa, có tên ví, số dư và lịch sử thu–chi. Chỉ lưu ở nơi riêng tư. Không gửi tệp cho người lạ. Dữ liệu Expo Go và PWA không tự chuyển; hãy xuất từ app cũ rồi nhập vào app mới.',
+    exportNotice:
+      'Đã mở thao tác lưu/chia sẻ tệp. Hãy kiểm tra bản sao đã nằm trong Tệp/iCloud hoặc thư mục tải về; hủy hộp thoại thì chưa có bản sao ngoài app.',
+    confirmTitle: 'Thay dữ liệu hiện tại bằng bản sao này?',
+    summary:
+      'Bản sao ngày {{date}}: {{accounts}} ví, {{transactions}} giao dịch.',
+    replaceWarning:
+      'Toàn bộ ví, giao dịch và thiết lập tiền của hồ sơ trên thiết bị này sẽ bị thay thế. Không thể hoàn tác trong app. Hãy xuất bản sao dữ liệu hiện tại trước khi tiếp tục. Không ảnh hưởng ngân hàng hoặc hồ sơ khác.',
+    acknowledge:
+      'Tôi đã giữ bản sao cần thiết và hiểu dữ liệu hiện tại sẽ bị thay thế.',
+    confirmReplace: 'Xác nhận thay thế dữ liệu',
+    restored:
+      'Đã khôi phục dữ liệu. Các ví và báo cáo đã được cập nhật từ bản sao.',
+  },
   overview: {
+    currentBalanceHint:
+      'Số dư hiện tại của tất cả ví, không phải số dư cuối tháng đã chọn.',
+    currentMonth: 'Về tháng hiện tại',
+    net: 'Chênh lệch thu – chi',
+    cashFlowHint:
+      'Theo ngày giao dịch thực tế trong tháng đã chọn. Không tính chuyển tiền giữa các ví; tháng lương không thay thế ngày nhận.',
+    chartHint:
+      'Tối đa 7 ngày đến hôm nay trong tháng hiện tại; với tháng khác là các ngày cuối tháng.',
+    chartDay: '{{date}}: chi {{amount}}',
+    noSpending: 'Chưa có khoản chi trong khoảng ngày này.',
+    emptyTitle: 'Tháng này chưa có giao dịch',
+    emptyText: 'Thêm giao dịch mới hoặc chuyển sang tháng khác để xem.',
     dateLabel: 'THỨ TƯ, 7 THÁNG 10',
     greeting: 'Chào {{name}} 👋',
     month: 'Tháng 10, 2026',
@@ -44,7 +106,7 @@ export const vi = {
     all: 'Tất cả',
     expenses: 'Chi tiêu',
     income: 'Thu nhập',
-    resultCount: '{{count}} giao dịch trong tháng này',
+    resultCount: '{{count}} giao dịch trong {{month}}',
     emptyTitle: 'Chưa có giao dịch phù hợp',
     emptyText: 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.',
   },
@@ -58,6 +120,33 @@ export const vi = {
     insightTitle: 'Một gợi ý nhỏ',
     insightText: 'Bạn đang chi cho mua sắm hơi nhanh hơn kế hoạch tháng này.',
     category: 'Danh mục',
+  },
+  transactionDetail: {
+    title: 'Chi tiết giao dịch',
+    edit: 'Sửa giao dịch',
+    save: 'Lưu thay đổi',
+    delete: 'Xóa giao dịch',
+    deleteTitle: 'Xóa giao dịch này?',
+    deleteHint:
+      'Giao dịch sẽ bị ẩn khỏi lịch sử và báo cáo. Số dư ví được điều chỉnh ngược lại khoản thu/chi này. Không có nút hoàn tác trong app.',
+    confirmDelete: 'Xác nhận xóa',
+    balanceHint:
+      'Sửa số tiền, loại thu/chi hoặc ví sẽ điều chỉnh số dư tương ứng. Với lương đã nằm trong số dư lúc nhập, chỉ chênh lệch được cộng/trừ khi sửa; xóa sẽ trừ khoản lương đã ghi.',
+    amount: 'Số tiền (₫)',
+    date: 'Ngày giao dịch',
+    salaryMonthHint:
+      'Nhập YYYY-MM, ví dụ 2026-10. Tháng lương độc lập với ngày nhận; mỗi tháng chỉ có một khoản lương.',
+    readOnly:
+      'Giao dịch nhập từ bên ngoài hoặc chuyển tiền hiện chỉ được xem; chưa hỗ trợ sửa/xóa để tránh lệch dữ liệu.',
+    accountValue: 'Ví: {{name}}',
+    categoryValue: 'Danh mục: {{name}}',
+    salaryValue: 'Lương của {{month}}',
+    types: { expense: 'Chi tiêu', income: 'Thu nhập', transfer: 'Chuyển tiền' },
+    sources: {
+      manual: 'Nhập thủ công',
+      imported: 'Nhập từ sao kê',
+      'bank-api': 'Đồng bộ ngân hàng',
+    },
   },
   accounts: {
     eyebrow: 'TÀI SẢN CỦA BẠN',
@@ -153,6 +242,19 @@ export const vi = {
     salaryExists: 'Tháng này đã có giao dịch lương. Không cộng thêm lần nữa.',
     unsupportedTransfer: 'Chuyển tiền giữa các ví chưa được hỗ trợ.',
     saveFailed: 'Không lưu được dữ liệu. Hãy thử lại.',
+    transactionNotFound: 'Giao dịch không tồn tại hoặc đã bị xóa.',
+    readOnlyTransaction:
+      'Giao dịch nhập từ bên ngoài hiện chỉ được xem để tránh lệch dữ liệu đồng bộ.',
+    invalidCategory: 'Danh mục không phù hợp với loại giao dịch.',
+    invalidBackup:
+      'Bản sao lưu không hợp lệ, không tương thích hoặc số dư không khớp. Dữ liệu hiện tại chưa bị thay đổi.',
+    backupTooLarge: 'Chỉ nhận bản sao lưu nhỏ hơn 10 MB.',
+    restoreUnavailable:
+      'Không thể khôi phục khi hồ sơ đang đồng bộ hoặc ID trùng hồ sơ khác. Dữ liệu hiện tại vẫn được giữ nguyên.',
+    backupFileFailed:
+      'Không đọc/ghi được tệp. Hãy thử lại hoặc chọn trình duyệt thông thường thay vì chế độ riêng tư.',
+    webStorageConflict:
+      'Dữ liệu đã thay đổi ở tab khác. Khoản vừa nhập chưa được lưu. Hãy tải lại app trước khi tiếp tục để tránh ghi đè.',
   },
   accountConnections: {
     title: 'Kết Nối Tài Khoản',

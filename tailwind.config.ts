@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss';
 import { colors, radii, spacing } from './src/shared/constants/theme';
 
 export default {
+  darkMode: 'class',
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {

@@ -11,6 +11,14 @@ export const financeErrorCodes = [
   'salaryExists',
   'unsupportedTransfer',
   'saveFailed',
+  'transactionNotFound',
+  'readOnlyTransaction',
+  'invalidCategory',
+  'invalidBackup',
+  'backupTooLarge',
+  'restoreUnavailable',
+  'backupFileFailed',
+  'webStorageConflict',
 ] as const;
 
 export type FinanceErrorCode = (typeof financeErrorCodes)[number];
@@ -26,6 +34,21 @@ export function assertMoney(value: number, allowNegative = false) {
   if (!Number.isSafeInteger(value) || (!allowNegative && value <= 0)) {
     throw new FinanceError(allowNegative ? 'invalidBalance' : 'invalidAmount');
   }
+}
+
+/** Avoid rounding intermediate sums while replacing contributions near MAX_SAFE_INTEGER. */
+export function adjustBalance(
+  balance: number,
+  removedDelta: number,
+  addedDelta = 0,
+) {
+  for (const value of [balance, removedDelta, addedDelta])
+    assertMoney(value, true);
+  const result = Number(
+    BigInt(balance) - BigInt(removedDelta) + BigInt(addedDelta),
+  );
+  assertMoney(result, true);
+  return result;
 }
 
 /** Accept plain integers and Vietnamese thousands separators, never silently round. */

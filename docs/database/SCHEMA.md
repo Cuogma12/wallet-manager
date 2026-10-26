@@ -5,6 +5,7 @@ This document is the database contract for the offline-first finance app.
 ## Data ownership
 
 The mobile app owns a local SQLite database. It works without an account or network connection.
+The PWA uses the same schema in SQLite WASM, persisted atomically to IndexedDB rather than Expo's experimental OPFS web backend. See [PWA setup and backup contract](../PWA.md). Native data is not automatically moved to browser storage; portable JSON backup/restore is explicit and profile-scoped. The browser adapter uses a revision check to prevent stale tabs overwriting newer data and acknowledges writes only after durable commit.
 The future online database will use Supabase Auth and PostgreSQL. Local records keep their client-generated IDs so they can be uploaded idempotently later.
 
 ```text
@@ -88,6 +89,17 @@ The category icon is derived from the stable category key in code. It is not sto
 - Salary deduplication is profile-wide, not per wallet: `idx_salary_month` is unique on `(profile_id, salary_month)` for active, non-demo rows. The repository additionally checks legacy non-demo salary rows with null `salary_month` against local receipt-month boundaries.
 - Generic income entry uses category `other`; monthly salary uses the dedicated salary form. The receipt date must be a real date no later than today; salary month and receipt month may differ.
 - Every mutation validates integer money and the wallet owner, is serialized, and is committed/rolled back atomically. Native uses Expo's exclusive transaction handle; web uses a serialized transaction fallback. All repository reads share the same queue.
+
+### Transaction editing and monthly reporting (schema v3, no new migration)
+
+- Transaction detail is reachable from both Overview and Transactions. Manual income/expense rows can be edited; imported, bank-API and transfer rows remain read-only in this release.
+- Editing preserves the transaction ID and creation time. The repository atomically removes its previous signed contribution and applies the new one to the selected wallet(s); `opening_balance` is unchanged. Money calculations use exact intermediate arithmetic and reject out-of-range final balances.
+- Deleting requires an in-app confirmation and reverses the contribution once. It sets `deleted_at`, `updated_at` and `sync_state = pending`; active queries exclude the tombstone. There is no restore UI. Missing, already-deleted, foreign-profile or read-only records cannot change balances.
+- Every affected wallet must be active and owned by the local profile. Failed edits/deletions roll back the entire operation. Editing adopts a demo transaction as real (`is_demo = 0`), so future demo cleanup cannot remove the edited record.
+- Salary edits preserve `salary_month` independently of receipt date unless explicitly changed. Uniqueness checks exclude the row being edited but still check other active real salaries, including legacy null-month salaries. Removing/changing a salary releases its old month. Receipt dates for salaries cannot be in the future.
+- Salary already included in an initial wallet balance is part of the ledger: changing its amount applies only the difference; deleting it subtracts that income. The earlier baseline reduction is not undone. Moving it to another wallet reverses the old wallet contribution and credits the new wallet.
+- Overview and Transactions filter by the local calendar month of `occurred_at`, not `salary_month` or the UTC date prefix. Transfers do not count as income or expenses. Recent transactions are sorted by actual instant. Total assets always show current wallet balances, not a historical month-end balance.
+- The spending chart shows at most seven calendar days inside the selected month: through today for the current month, otherwise through that month's last day. Empty periods show zero and an empty-state message. Overview no longer shows a fabricated budget, trend percentage, fixed date or sample chart. The separate Budgets screen is still a prototype.
 
 ### Explicit demo cleanup
 

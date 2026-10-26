@@ -1,4 +1,4 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
+import type { FinanceDatabase } from '@/db/operations';
 import { seedAccounts, seedTransactions } from '@/data/seed';
 import {
   DB_SCHEMA_VERSION,
@@ -8,7 +8,7 @@ import {
 
 const now = () => new Date().toISOString();
 
-export async function migrateDbIfNeeded(db: SQLiteDatabase) {
+export async function migrateDbIfNeeded(db: FinanceDatabase) {
   const versionRow = await db.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version',
   );
@@ -16,6 +16,11 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
   if (currentVersion > DB_SCHEMA_VERSION) {
     throw new Error(`Unsupported database version: ${currentVersion}`);
+  }
+
+  if (currentVersion === DB_SCHEMA_VERSION) {
+    await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+    return;
   }
 
   await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = OFF;');
@@ -38,7 +43,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   }
 }
 
-async function createVersion2Schema(db: SQLiteDatabase) {
+async function createVersion2Schema(db: FinanceDatabase) {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY NOT NULL,
@@ -103,7 +108,7 @@ async function createVersion2Schema(db: SQLiteDatabase) {
   `);
 }
 
-async function initializeProfile(db: SQLiteDatabase) {
+async function initializeProfile(db: FinanceDatabase) {
   const timestamp = now();
 
   await db.runAsync(
@@ -127,7 +132,7 @@ async function initializeProfile(db: SQLiteDatabase) {
   );
 }
 
-async function migrateV1ToV2(db: SQLiteDatabase) {
+async function migrateV1ToV2(db: FinanceDatabase) {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY NOT NULL,
@@ -187,7 +192,7 @@ async function migrateV1ToV2(db: SQLiteDatabase) {
   `);
 }
 
-async function migrateV2ToV3(db: SQLiteDatabase) {
+async function migrateV2ToV3(db: FinanceDatabase) {
   await db.execAsync(`
     ALTER TABLE accounts ADD COLUMN opening_balance INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE accounts ADD COLUMN is_demo INTEGER NOT NULL DEFAULT 0;

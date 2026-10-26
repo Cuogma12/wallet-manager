@@ -20,9 +20,11 @@ type Props = {
 export function TransactionRow({ transaction, account, onPress }: Props) {
   const { t, intlLocale } = useI18n();
   const isIncome = transaction.type === 'income';
+  const isTransfer = transaction.type === 'transfer';
 
   return (
     <Pressable
+      accessibilityRole={onPress ? 'button' : undefined}
       onPress={onPress}
       className={cn(uiClasses.row, 'py-[13px] gap-md', 'active:opacity-[0.65]')}
     >
@@ -62,7 +64,7 @@ export function TransactionRow({ transaction, account, onPress }: Props) {
           isIncome ? 'text-income' : 'text-text',
         )}
       >
-        {isIncome ? '+' : '-'}
+        {isTransfer ? '' : isIncome ? '+' : '-'}
         {formatCurrency(transaction.amount)}
       </Text>
     </Pressable>

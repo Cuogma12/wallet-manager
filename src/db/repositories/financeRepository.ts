@@ -6,9 +6,13 @@ import {
   type FinanceDatabase,
 } from '@/db/operations';
 import { accountTypes } from '@/shared/constants/accountTypes';
-import { getCategoryIcon } from '@/shared/constants/categories';
+import {
+  expenseCategories,
+  getCategoryIcon,
+} from '@/shared/constants/categories';
 import {
   assertMoney,
+  adjustBalance,
   assertMonth,
   FinanceError,
   getMonthKey,
@@ -20,6 +24,7 @@ import type {
   NewTransaction,
   SaveAccount,
   Transaction,
+  UpdateTransaction,
 } from '@/shared/types/finance';
 
 type AccountRow = {
@@ -170,15 +175,20 @@ export async function saveAccount(db: FinanceDatabase, input: SaveAccount) {
   });
 }
 
-async function assertSalaryAvailable(db: FinanceDatabase, month: string) {
+async function assertSalaryAvailable(
+  db: FinanceDatabase,
+  month: string,
+  excludedId = '',
+) {
   // Also catch legacy manual salaries without salary_month, using local calendar boundaries.
   const [year, number] = month.split('-').map(Number);
   const start = new Date(year, number - 1, 1).toISOString();
   const end = new Date(year, number, 1).toISOString();
   const existing = await db.getFirstAsync<{ id: string }>(
-    `SELECT id FROM transactions WHERE profile_id = ? AND deleted_at IS NULL AND is_demo = 0
+    `SELECT id FROM transactions WHERE profile_id = ? AND id != ? AND deleted_at IS NULL AND is_demo = 0
      AND (salary_month = ? OR (salary_month IS NULL AND category = 'salary' AND type = 'income' AND occurred_at >= ? AND occurred_at < ?)) LIMIT 1`,
     LOCAL_PROFILE_ID,
+    excludedId,
     month,
     start,
     end,
@@ -241,6 +251,126 @@ function validateTransaction(input: NewTransaction) {
     throw new FinanceError('unsupportedTransfer');
   if (!Number.isFinite(new Date(input.occurredAt).getTime()))
     throw new FinanceError('invalidDate');
+  if (
+    !expenseCategories.some((item) => item.key === input.category) &&
+    !(input.type === 'income' && input.category === 'salary')
+  )
+    throw new FinanceError('invalidCategory');
+}
+
+async function requireEditableTransaction(db: FinanceDatabase, id: string) {
+  const row = await db.getFirstAsync<TransactionRow>(
+    'SELECT * FROM transactions WHERE id = ? AND profile_id = ? AND deleted_at IS NULL',
+    id,
+    LOCAL_PROFILE_ID,
+  );
+  if (!row) throw new FinanceError('transactionNotFound');
+  if (row.source !== 'manual') throw new FinanceError('readOnlyTransaction');
+  if (row.type === 'transfer') throw new FinanceError('unsupportedTransfer');
+  return row;
+}
+
+/** Replaces the old contribution, never rebases opening balances or creates a second record. */
+export function updateTransaction(
+  db: FinanceDatabase,
+  input: UpdateTransaction,
+) {
+  validateTransaction(input);
+  return writeDatabase(db, async (tx) => {
+    const old = await requireEditableTransaction(tx, input.id);
+    const salaryMonth =
+      input.type === 'income' && input.category === 'salary'
+        ? (input.salaryMonth ??
+          (old.category === 'salary' ? old.salary_month : null) ??
+          getMonthKey(new Date(input.occurredAt)))
+        : null;
+    if (salaryMonth !== null) {
+      assertMonth(salaryMonth);
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      if (new Date(input.occurredAt) > endOfToday)
+        throw new FinanceError('futureDate');
+      await assertSalaryAvailable(tx, salaryMonth, old.id);
+    }
+    const oldAccount = await requireAccount(tx, old.account_id);
+    const newAccount = await requireAccount(tx, input.accountId);
+    const oldDelta = old.type === 'income' ? old.amount : -old.amount;
+    const newDelta = input.type === 'income' ? input.amount : -input.amount;
+    const timestamp = new Date().toISOString();
+    const balances =
+      old.account_id === input.accountId
+        ? [
+            [
+              old.account_id,
+              adjustBalance(oldAccount.balance, oldDelta, newDelta),
+            ] as const,
+          ]
+        : [
+            [
+              old.account_id,
+              adjustBalance(oldAccount.balance, oldDelta),
+            ] as const,
+            [
+              input.accountId,
+              adjustBalance(newAccount.balance, 0, newDelta),
+            ] as const,
+          ];
+    for (const [accountId, balance] of balances) {
+      assertMoney(balance, true);
+      await tx.runAsync(
+        "UPDATE accounts SET balance = ?, updated_at = ?, sync_state = 'pending' WHERE id = ? AND profile_id = ?",
+        balance,
+        timestamp,
+        accountId,
+        LOCAL_PROFILE_ID,
+      );
+    }
+    await tx.runAsync(
+      `UPDATE transactions SET account_id = ?, title = ?, merchant = ?, amount = ?, type = ?, category = ?,
+       occurred_at = ?, note = ?, salary_month = ?, is_demo = 0, sync_state = 'pending', updated_at = ?
+       WHERE id = ? AND profile_id = ?`,
+      input.accountId,
+      input.title.trim(),
+      input.title.trim(),
+      input.amount,
+      input.type,
+      input.category,
+      new Date(input.occurredAt).toISOString(),
+      input.note?.trim() || null,
+      salaryMonth,
+      timestamp,
+      old.id,
+      LOCAL_PROFILE_ID,
+    );
+  });
+}
+
+/** Tombstones are retained for future synchronization; a repeated delete cannot refund twice. */
+export function deleteTransaction(db: FinanceDatabase, id: string) {
+  return writeDatabase(db, async (tx) => {
+    const old = await requireEditableTransaction(tx, id);
+    const account = await requireAccount(tx, old.account_id);
+    const balance = adjustBalance(
+      account.balance,
+      old.type === 'income' ? old.amount : -old.amount,
+    );
+    assertMoney(balance, true);
+    const timestamp = new Date().toISOString();
+    await tx.runAsync(
+      "UPDATE accounts SET balance = ?, updated_at = ?, sync_state = 'pending' WHERE id = ? AND profile_id = ?",
+      balance,
+      timestamp,
+      old.account_id,
+      LOCAL_PROFILE_ID,
+    );
+    await tx.runAsync(
+      "UPDATE transactions SET deleted_at = ?, updated_at = ?, sync_state = 'pending' WHERE id = ? AND profile_id = ?",
+      timestamp,
+      timestamp,
+      old.id,
+      LOCAL_PROFILE_ID,
+    );
+  });
 }
 
 export function addTransaction(db: FinanceDatabase, input: NewTransaction) {

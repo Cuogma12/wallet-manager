@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { confirmAction, showMessage } from '@/services/dialogs/confirm';
 import { router } from 'expo-router';
 import { useFinance } from '@/context/FinanceContext';
 import { useI18n } from '@/shared/i18n';
@@ -32,44 +32,45 @@ export function useAccounts() {
   function openSalary() {
     router.push('/salary');
   }
+  function openSettings() {
+    router.push('/app-settings');
+  }
   function openConnections() {
     router.push('/connect-accounts');
   }
   function openImport() {
-    Alert.alert(t('accounts.importStatement'), t('accounts.importComingSoon'));
+    showMessage(t('accounts.importStatement'), t('accounts.importComingSoon'));
   }
   function confirmClearDemo() {
     if (action.isSaving) return;
-    Alert.alert(t('accounts.clearDemoTitle'), t('accounts.clearDemoConfirm'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('accounts.clearDemo'),
-        style: 'destructive',
-        onPress: () => {
-          void action.run(clearDemoData, () =>
-            Alert.alert(
-              t('accounts.clearDemoDone'),
-              t('accounts.clearDemoDoneText'),
-            ),
-          );
-        },
+    confirmAction({
+      title: t('accounts.clearDemoTitle'),
+      message: t('accounts.clearDemoConfirm'),
+      cancelLabel: t('common.cancel'),
+      confirmLabel: t('accounts.clearDemo'),
+      onConfirm: () => {
+        void action.run(clearDemoData, () =>
+          showMessage(
+            t('accounts.clearDemoDone'),
+            t('accounts.clearDemoDoneText'),
+          ),
+        );
       },
-    ]);
+    });
   }
   function confirmResetFinance() {
     if (action.isSaving) return;
-    Alert.alert(t('accounts.resetTitle'), t('accounts.resetConfirm'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('accounts.resetAll'),
-        style: 'destructive',
-        onPress: () => {
-          void action.run(resetFinancialData, () =>
-            Alert.alert(t('accounts.resetDone'), t('accounts.resetDoneText')),
-          );
-        },
+    confirmAction({
+      title: t('accounts.resetTitle'),
+      message: t('accounts.resetConfirm'),
+      cancelLabel: t('common.cancel'),
+      confirmLabel: t('accounts.resetAll'),
+      onConfirm: () => {
+        void action.run(resetFinancialData, () =>
+          showMessage(t('accounts.resetDone'), t('accounts.resetDoneText')),
+        );
       },
-    ]);
+    });
   }
   return {
     accounts,
@@ -78,6 +79,7 @@ export function useAccounts() {
     createAccount,
     editAccount,
     openSalary,
+    openSettings,
     openConnections,
     openImport,
     confirmClearDemo,
