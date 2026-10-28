@@ -1,5 +1,7 @@
 /** Common layout primitives and card variants. Use cn() to add or override utilities. */
 export const uiClasses = {
+  calendarWeek: 'min-w-[308px] flex-row',
+  calendarDay: 'min-h-11 min-w-11 flex-1 items-center justify-center',
   row: 'flex-row items-center',
   rowBetween: 'flex-row items-center justify-between',
   center: 'items-center justify-center',

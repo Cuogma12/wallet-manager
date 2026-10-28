@@ -60,7 +60,13 @@ test('installed shell starts offline, keeps money after reload, and restores a d
     page.getByText('1.000.000 ₫', { exact: true }).first(),
   ).toBeVisible();
   await page.goto('/add');
-  await page.getByLabel('SỐ TIỀN', { exact: true }).fill('50000');
+  const amountInput = page.getByRole('textbox', {
+    name: 'SỐ TIỀN',
+    exact: true,
+  });
+  await amountInput.click();
+  await amountInput.pressSequentially('50000', { delay: 30 });
+  await expect(amountInput).toHaveValue('50000');
   await page
     .getByLabel('Tên giao dịch', { exact: true })
     .fill('Ăn trưa offline');

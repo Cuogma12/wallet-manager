@@ -8,6 +8,12 @@ Automated: `npm test` exercises the repository with real SQLite. Run `npx tsc --
 - [ ] Tạo ví Tiền mặt số dư `1.000.000`, ví Ngân hàng `2.000.000`: tổng tài sản `3.000.000`, không có giao dịch thu giả.
 - [ ] Nhập số dư `0` được phép; tên trống, số thập phân `1,5`, `1.5`, số vượt giới hạn báo lỗi và không lưu.
 - [ ] Chi `50.000` từ Tiền mặt: số dư `950.000`. Sửa tên/loại/số dư thành `900.000`: khoản chi vẫn còn, không có khoản thu mới.
+- [ ] Ô số tiền giao dịch: gõ từng phím `50000` giữ nguyên `50000` cả khi đổi focus; dòng xem trước hiện `Giá trị: 50.000 ₫`. Lưu tạo đúng một khoản chi 50.000, không báo lỗi do dấu phân cách. Thay toàn bộ số bằng nhập/dán không nối thêm giá trị cũ.
+- [ ] Chèn/xóa ở giữa số, Backspace qua mốc 1.000 và xóa hết không tự chèn dấu hay đổi số tiền. Dán `1.200.000`, rời ô rồi sửa tiếp không tạo nhóm sai. Số `0`, âm, thập phân, văn bản kèm đơn vị hoặc vượt giới hạn vẫn bị từ chối, không thay đổi số dư.
+- [ ] Thêm giao dịch mặc định ngày hôm nay theo lịch địa phương; nút Hôm nay/Hôm qua cập nhật đúng qua ranh giới tháng/năm. Có thể nhập DD/MM/YYYY hoặc mở lịch, đổi tháng và chạm ngày để chọn; đóng lịch không sửa ngày đã chọn.
+- [ ] Lịch bắt đầu từ thứ Hai, hiển thị đúng 29/02 năm nhuận; ngày không tồn tại/trống bị từ chối, không ghi giao dịch hay đổi số dư. Trên màn hình 320px, vuốt lịch ngang để chọn cột cuối; mỗi ngày vẫn có vùng chạm tối thiểu 44pt.
+- [ ] Chi/thu ghi lùi ngày xuất hiện đúng tháng trong Tổng quan và Giao dịch, không tự chuyển về hôm nay khi lưu/reload/offline. Tổng tài sản vẫn là số dư hiện tại, không phải số dư lịch sử tại ngày chọn.
+- [ ] Ngày hôm nay dùng thời điểm lưu thực tế; ngày khác dùng 12:00 giờ địa phương để chuyển thành ISO lưu trong `occurred_at`. Không thêm cột/migration. Thu/chi thường giữ nguyên quy tắc hiện tại (không chặn ngày tương lai); lương vẫn chặn ngày nhận tương lai.
 - [ ] Ghi lương `18.000.000` vào Ngân hàng: tạo một giao dịch thu, số dư `20.000.000`. Bấm lưu nhanh nhiều lần không tạo trùng.
 - [ ] Quay lại cùng tháng hoặc đổi ví nhận: báo đã ghi nhận, không cộng lần hai. Chọn tháng khác thì lưu được.
 - [ ] Khi nhập số dư có sẵn lương, bật “Lương đã nằm trong số dư ví”: thêm giao dịch thu nhưng số dư không tăng thêm.

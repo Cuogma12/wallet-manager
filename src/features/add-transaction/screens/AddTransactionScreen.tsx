@@ -15,6 +15,7 @@ import { AppInput } from '@/shared/components/atoms/AppInput';
 import { colors } from '@/shared/constants/theme';
 import { inputScrollProps } from '@/shared/constants/inputBehavior';
 import { useAddTransaction } from '@/features/add-transaction/hooks/useAddTransaction';
+import { TransactionDateField } from '@/features/add-transaction/components/TransactionDateField';
 import { AccountPicker } from '@/shared/components/molecules/AccountPicker';
 import { CategoryPicker } from '@/shared/components/molecules/CategoryPicker';
 import { TransactionTypePicker } from '@/shared/components/molecules/TransactionTypePicker';
@@ -98,6 +99,7 @@ export default function AddTransactionScreen() {
                 autoFocus
                 value={form.amountDisplay}
                 onChangeText={form.changeAmount}
+                onBlur={form.blurAmount}
                 keyboardType="numeric"
                 placeholder={t('add.amountPlaceholder')}
                 placeholderTextColor={colors.textSubtle}
@@ -107,6 +109,11 @@ export default function AddTransactionScreen() {
                 {t('common.vnd')}
               </Text>
             </View>
+            {form.amountPreview !== '' && (
+              <Text className={cn(uiClasses.hint, 'mt-sm text-center')}>
+                {t('add.amountPreview', { amount: form.amountPreview })}
+              </Text>
+            )}
           </View>
           <Text className="mt-[22px] mb-[9px] text-text text-[13px] font-extrabold">
             {t('add.transactionName')}
@@ -124,6 +131,7 @@ export default function AddTransactionScreen() {
             placeholderTextColor={colors.textSubtle}
             className={uiClasses.formInput}
           />
+          <TransactionDateField model={form.transactionDate} />
           {type === 'expense' && (
             <View className="mt-lg">
               <CategoryPicker
