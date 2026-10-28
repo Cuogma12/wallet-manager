@@ -17,6 +17,15 @@ test('installed shell starts offline, keeps money after reload, and restores a d
   await page.getByRole('button', { name: 'Lưu ví', exact: true }).click();
   await expect(page).not.toHaveURL(/\/manage-account(?:[?#]|$)/);
   await expect(page.getByText('Ví PWA', { exact: true })).toBeVisible();
+  await page.goto('/budgets');
+  await page
+    .getByRole('button', { name: 'Thêm ngân sách', exact: true })
+    .click();
+  await page.getByLabel('Hạn mức (₫)', { exact: true }).fill('100000');
+  await page
+    .getByRole('button', { name: 'Lưu ngân sách', exact: true })
+    .click();
+  await expect(page.getByLabel('Hạn mức (₫)', { exact: true })).toHaveCount(0);
   await page.goto('/app-settings');
   await expect(page.getByText(/^Sẵn sàng offline/)).toBeVisible({
     timeout: 30000,
@@ -49,6 +58,10 @@ test('installed shell starts offline, keeps money after reload, and restores a d
   await page.getByRole('button', { name: 'Xác nhận thay thế dữ liệu' }).click();
   await expect(page.getByText(/Đã khôi phục dữ liệu/)).toBeVisible();
   await context.setOffline(true);
+  await page.goto('/budgets');
+  await expect(
+    page.getByText('Đã chi 0 ₫ / hạn mức 100.000 ₫', { exact: true }),
+  ).toBeVisible();
   await page.goto('/accounts');
   await expect(page.getByText('Ví PWA', { exact: true })).toBeVisible();
   await expect(page.getByText('Sẽ bị thay thế', { exact: true })).toHaveCount(
@@ -86,6 +99,8 @@ test('installed shell starts offline, keeps money after reload, and restores a d
   await expect(
     page.getByText('Ăn trưa offline', { exact: true }),
   ).toBeVisible();
+  await page.goto('/budgets');
+  await expect(page.getByText('Đã dùng 50%', { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

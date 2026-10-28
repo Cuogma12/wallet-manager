@@ -35,4 +35,4 @@ Automated: `npm test` exercises the repository with real SQLite. Run `npx tsc --
 
 ## Chưa thuộc phạm vi
 
-Chuyển tiền giữa ví, ngân sách thật, import sao kê và kết nối ngân hàng vẫn là công việc tiếp theo. Tổng quan theo tháng và chi tiết/sửa/xóa giao dịch thủ công đã có checklist riêng tại [monthly-transactions.md](./monthly-transactions.md).
+Chuyển tiền giữa ví, import sao kê và kết nối ngân hàng vẫn là công việc tiếp theo. Ngân sách thật có checklist tại [budgets.md](./budgets.md). Tổng quan theo tháng và chi tiết/sửa/xóa giao dịch thủ công đã có checklist riêng tại [monthly-transactions.md](./monthly-transactions.md).

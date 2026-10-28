@@ -26,5 +26,8 @@ export function useAsyncAction() {
       setSaving(false);
     }
   }
-  return { run, isSaving, error };
+  function clearError() {
+    if (!locked.current) setError('');
+  }
+  return { run, isSaving, error, clearError };
 }

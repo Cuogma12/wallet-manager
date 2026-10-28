@@ -1,4 +1,5 @@
 import { LOCAL_PROFILE_ID } from '@/db/constants';
+import { readBudgets } from '@/db/repositories/budgetRepository';
 import { createClientId } from '@/db/ids';
 import {
   serializeDatabase,
@@ -57,7 +58,7 @@ type TransactionRow = {
 
 export function loadFinance(db: FinanceDatabase) {
   return serializeDatabase(db, async () => {
-    const [rows, transactions, settings] = await Promise.all([
+    const [rows, transactions, settings, budgets] = await Promise.all([
       db.getAllAsync<AccountRow>(
         'SELECT * FROM accounts WHERE profile_id = ? AND deleted_at IS NULL ORDER BY name',
         LOCAL_PROFILE_ID,
@@ -71,8 +72,10 @@ export function loadFinance(db: FinanceDatabase) {
         monthly_income: number;
         salary_day: number;
       }>('SELECT * FROM settings WHERE profile_id = ?', LOCAL_PROFILE_ID),
+      readBudgets(db),
     ]);
     return {
+      budgets,
       accounts: rows.map((row): Account => ({
         id: row.id,
         name: row.name,
@@ -498,6 +501,10 @@ export function clearDemoData(db: FinanceDatabase) {
 /** Irreversible local reset, invoked only after explicit in-app confirmation. */
 export function resetFinancialData(db: FinanceDatabase) {
   return writeDatabase(db, async (tx) => {
+    await tx.runAsync(
+      'DELETE FROM budgets WHERE profile_id = ?',
+      LOCAL_PROFILE_ID,
+    );
     await tx.runAsync(
       'DELETE FROM transactions WHERE profile_id = ?',
       LOCAL_PROFILE_ID,

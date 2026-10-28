@@ -6,6 +6,8 @@ export const financeErrorCodes = [
   'accountRequired',
   'accountNotFound',
   'invalidAccountProvider',
+  'budgetNotFound',
+  'budgetExists',
   'invalidMonth',
   'invalidDate',
   'futureDate',

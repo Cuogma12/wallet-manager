@@ -4,6 +4,8 @@ import type {
   FinanceBackup,
 } from '@/shared/types/backup';
 import { getAccountProvider } from '@/shared/constants/accountProviders';
+import { expenseCategories } from '@/shared/constants/categories';
+import type { Budget } from '@/shared/types/budget';
 import {
   assertMoney,
   assertMonth,
@@ -60,10 +62,29 @@ export function parseBackup(value: unknown): FinanceBackup {
     const input = record(value);
     if (
       input.format !== 'monee-backup' ||
-      input.version !== 1 ||
+      (input.version !== 1 && input.version !== 2) ||
       input.currency !== 'VND'
     )
       fail();
+    const budgetKeys = new Set<string>();
+    const budgetIds = new Set<string>();
+    const budgets =
+      input.version === 2
+        ? rows(input.budgets).map((entry): Budget => {
+            const row = record(entry);
+            const budgetId = id(row.id);
+            const month = string(row.month, 7);
+            assertMonth(month);
+            const category = string(row.category, 100);
+            if (!expenseCategories.some((item) => item.key === category))
+              fail();
+            const key = `${month}:${category}`;
+            if (budgetKeys.has(key) || budgetIds.has(budgetId)) fail();
+            budgetKeys.add(key);
+            budgetIds.add(budgetId);
+            return { id: budgetId, month, category, limit: money(row.limit) };
+          })
+        : undefined;
     const accounts = rows(input.accounts).map((entry): BackupAccount => {
       const row = record(entry);
       if (!['cash', 'bank', 'wallet'].includes(String(row.type))) fail();
@@ -167,7 +188,8 @@ export function parseBackup(value: unknown): FinanceBackup {
     if (salaryDay > 31 || monthlyIncome < 0) fail();
     return {
       format: 'monee-backup',
-      version: 1,
+      version: input.version,
+      ...(budgets ? { budgets } : {}),
       currency: 'VND',
       createdAt: date(input.createdAt),
       accounts,

@@ -40,4 +40,4 @@ Không đổi schema v3 và không reset dữ liệu. Xóa giao dịch giữ tom
 
 ## Còn lại
 
-Ngân sách ở tab Ngân sách vẫn là dữ liệu giao diện mẫu. Chuyển tiền thật giữa hai ví, khôi phục giao dịch đã xóa, sao lưu/import và liên kết ngân hàng chưa thuộc thay đổi này.
+Ngân sách thật đã được triển khai riêng ở schema v5, xem [budgets.md](./budgets.md). Sao lưu/khôi phục JSON đã có, xem [PWA.md](../PWA.md). Chuyển tiền thật giữa hai ví, khôi phục giao dịch đã xóa, import sao kê và liên kết ngân hàng vẫn chưa triển khai.

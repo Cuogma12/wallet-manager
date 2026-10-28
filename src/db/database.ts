@@ -43,6 +43,25 @@ export async function migrateDbIfNeeded(db: FinanceDatabase) {
         // Catalog identity is optional and distinct from an external bank account ID.
         // Never guess providers from names or modify balances during an upgrade.
         await db.execAsync('ALTER TABLE accounts ADD COLUMN provider_id TEXT;');
+        currentVersion = 4;
+      }
+      if (currentVersion === 4) {
+        await db.execAsync(`
+          CREATE TABLE budgets (
+            id TEXT PRIMARY KEY NOT NULL,
+            profile_id TEXT NOT NULL,
+            month TEXT NOT NULL,
+            category TEXT NOT NULL,
+            limit_amount INTEGER NOT NULL CHECK (limit_amount > 0),
+            sync_state TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            FOREIGN KEY (profile_id) REFERENCES profiles(id)
+          );
+          CREATE UNIQUE INDEX idx_budgets_profile_month_category
+            ON budgets(profile_id, month, category) WHERE deleted_at IS NULL;
+        `);
       }
       await db.execAsync(`PRAGMA user_version = ${DB_SCHEMA_VERSION}`);
     });

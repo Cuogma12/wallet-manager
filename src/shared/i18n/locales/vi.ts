@@ -61,9 +61,11 @@ export const vi = {
       'Đã mở thao tác lưu/chia sẻ tệp. Hãy kiểm tra bản sao đã nằm trong Tệp/iCloud hoặc thư mục tải về; hủy hộp thoại thì chưa có bản sao ngoài app.',
     confirmTitle: 'Thay dữ liệu hiện tại bằng bản sao này?',
     summary:
-      'Bản sao ngày {{date}}: {{accounts}} ví, {{transactions}} giao dịch.',
+      'Bản sao ngày {{date}}: {{accounts}} ví, {{transactions}} giao dịch, {{budgets}} ngân sách.',
     replaceWarning:
-      'Toàn bộ ví, giao dịch và thiết lập tiền của hồ sơ trên thiết bị này sẽ bị thay thế. Không thể hoàn tác trong app. Hãy xuất bản sao dữ liệu hiện tại trước khi tiếp tục. Không ảnh hưởng ngân hàng hoặc hồ sơ khác.',
+      'Toàn bộ ví, giao dịch, ngân sách và thiết lập tiền của hồ sơ trên thiết bị này sẽ bị thay thế. Không thể hoàn tác trong app. Hãy xuất bản sao dữ liệu hiện tại trước khi tiếp tục. Không ảnh hưởng ngân hàng hoặc hồ sơ khác.',
+    legacyBudgetsWarning:
+      'Đây là bản sao cũ chưa có ngân sách. Khôi phục sẽ xóa các hạn mức hiện tại; bạn cần tạo lại sau đó.',
     acknowledge:
       'Tôi đã giữ bản sao cần thiết và hiểu dữ liệu hiện tại sẽ bị thay thế.',
     confirmReplace: 'Xác nhận thay thế dữ liệu',
@@ -111,15 +113,39 @@ export const vi = {
     emptyText: 'Thử đổi bộ lọc hoặc từ khóa tìm kiếm.',
   },
   budgets: {
-    eyebrow: 'THÁNG 10, 2026',
     title: 'Ngân sách',
     add: 'Thêm ngân sách',
-    totalSpent: 'TỔNG ĐÃ CHI',
-    withinBudget: 'trong ngân sách 12.000.000 ₫',
-    used: 'đã dùng',
-    insightTitle: 'Một gợi ý nhỏ',
-    insightText: 'Bạn đang chi cho mua sắm hơi nhanh hơn kế hoạch tháng này.',
-    category: 'Danh mục',
+    hint: 'Hạn mức riêng cho từng tháng, tính khoản chi thực tế từ tất cả ví. Không tính thu nhập, chuyển tiền hay dữ liệu mẫu. Cảnh báo trong app từ 80%, không phải thông báo đẩy.',
+    totalLimit: 'TỔNG HẠN MỨC THÁNG',
+    budgetedSpent:
+      'Đã chi trong các danh mục đặt hạn mức: {{amount}} ({{percent}}%).',
+    unbudgeted: 'Chi ở danh mục chưa đặt hạn mức: {{amount}}.',
+    alerts: '{{count}} danh mục đã dùng từ 80% hạn mức trở lên.',
+    allSet:
+      'Đã đặt hạn mức cho tất cả danh mục. Bạn có thể sửa từng ngân sách bên dưới.',
+    emptyTitle: 'Tháng này chưa có ngân sách',
+    emptyText:
+      'Thêm hạn mức cho từng danh mục để theo dõi chi tiêu. Ngân sách không làm thay đổi số dư ví.',
+    limit: 'Hạn mức (₫)',
+    limitPlaceholder: 'Ví dụ: 3.000.000',
+    formHint:
+      'Mỗi danh mục chỉ có một hạn mức trong tháng. Không tự chuyển hạn mức sang tháng sau.',
+    save: 'Lưu ngân sách',
+    editTitle: 'Sửa ngân sách',
+    edit: 'Sửa ngân sách {{name}}',
+    delete: 'Xóa ngân sách {{name}}',
+    deleteTitle: 'Xóa hạn mức này?',
+    deleteHint:
+      'Chỉ xóa hạn mức. Giao dịch và số dư ví được giữ nguyên; khoản chi sẽ chuyển sang nhóm chưa đặt hạn mức.',
+    confirmDelete: 'Xác nhận xóa ngân sách',
+    amounts: 'Đã chi {{spent}} / hạn mức {{limit}}',
+    overrun: 'Vượt hạn mức {{amount}}',
+    status: {
+      normal: 'Đã dùng {{percent}}%',
+      near: 'Sắp chạm hạn mức · {{percent}}%',
+      exhausted: 'Đã dùng hết hạn mức · {{percent}}%',
+      over: 'Đã vượt hạn mức · {{percent}}%',
+    },
   },
   transactionDetail: {
     title: 'Chi tiết giao dịch',
@@ -186,11 +212,11 @@ export const vi = {
     balanceHint: 'Chạm vào một ví để sửa tên, loại ví hoặc số dư hiện tại.',
     resetAll: 'Xóa toàn bộ dữ liệu',
     resetTitle: 'Xóa hết dữ liệu trên máy này?',
-    resetWarning: 'Xóa cả ví, lương và giao dịch đã nhập',
+    resetWarning: 'Xóa cả ví, lương, giao dịch và ngân sách đã nhập',
     resetDescription:
       'Chỉ dùng khi muốn bắt đầu lại từ đầu. Không thể hoàn tác trong app.',
     resetConfirm:
-      'Tất cả ví, giao dịch, lương và dữ liệu mẫu của hồ sơ hiện tại trên máy này sẽ bị xóa vĩnh viễn; số dư và thiết lập tiền về 0. Không thể hoàn tác nếu chưa có bản sao lưu. Thao tác không xóa tài khoản hay giao dịch tại ngân hàng/ví điện tử.',
+      'Tất cả ví, giao dịch, lương, ngân sách và dữ liệu mẫu của hồ sơ hiện tại trên máy này sẽ bị xóa vĩnh viễn; số dư và thiết lập tiền về 0. Không thể hoàn tác nếu chưa có bản sao lưu. Thao tác không xóa tài khoản hay giao dịch tại ngân hàng/ví điện tử.',
     resetDone: 'Đã xóa dữ liệu trên máy',
     resetDoneText:
       'Bạn có thể tạo ví mới và nhập số dư hiện tại để bắt đầu lại.',
@@ -256,7 +282,10 @@ export const vi = {
     accountNotFound: 'Ví này không còn tồn tại. Hãy chọn hoặc tạo ví khác.',
     invalidAccountProvider:
       'Ngân hàng / ví điện tử không phù hợp với loại ví. Hãy chọn lại.',
-    invalidMonth: 'Tháng lương không hợp lệ.',
+    invalidMonth: 'Tháng không hợp lệ.',
+    budgetNotFound: 'Ngân sách không còn tồn tại. Hãy tải lại dữ liệu.',
+    budgetExists:
+      'Danh mục này đã có hạn mức trong tháng. Hãy sửa ngân sách đã có.',
     invalidDate: 'Nhập ngày có thật theo định dạng DD/MM/YYYY.',
     futureDate: 'Chỉ ghi nhận lương đã nhận, không chọn ngày tương lai.',
     salaryExists: 'Tháng này đã có giao dịch lương. Không cộng thêm lần nữa.',

@@ -1,5 +1,5 @@
-export function formatCurrency(value: number): string {
-  return `${Math.round(value).toLocaleString('vi-VN')} ₫`;
+export function formatCurrency(value: number | bigint): string {
+  return `${(typeof value === 'bigint' ? value : Math.round(value)).toLocaleString('vi-VN')} ₫`;
 }
 
 export function formatCompactCurrency(value: number): string {

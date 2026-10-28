@@ -39,6 +39,7 @@ export function CategoryPicker({
           <Pressable
             key={item.key}
             accessibilityRole="button"
+            accessibilityLabel={t(item.labelKey)}
             accessibilityState={{
               selected: selectedKey === item.key,
               disabled,

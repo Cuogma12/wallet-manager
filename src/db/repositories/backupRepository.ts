@@ -1,4 +1,5 @@
 import { LOCAL_PROFILE_ID } from '@/db/constants';
+import { readBudgets } from '@/db/repositories/budgetRepository';
 import {
   serializeDatabase,
   writeDatabase,
@@ -39,7 +40,8 @@ export function exportBackup(db: FinanceDatabase): Promise<FinanceBackup> {
     );
     return parseBackup({
       format: 'monee-backup',
-      version: 1,
+      version: 2,
+      budgets: await readBudgets(db),
       currency: 'VND',
       createdAt: new Date().toISOString(),
       settings,
@@ -83,12 +85,34 @@ export async function restoreBackup(db: FinanceDatabase, value: unknown) {
     );
     const accountIds = new Set(backup.accounts.map((row) => row.id));
     const transactionIds = new Set(backup.transactions.map((row) => row.id));
+    const foreignBudgets = await tx.getAllAsync<{ id: string }>(
+      'SELECT id FROM budgets WHERE profile_id != ?',
+      LOCAL_PROFILE_ID,
+    );
+    const budgetIds = new Set((backup.budgets ?? []).map((row) => row.id));
     if (
       foreignAccounts.some((row) => accountIds.has(row.id)) ||
-      foreignTransactions.some((row) => transactionIds.has(row.id))
+      foreignTransactions.some((row) => transactionIds.has(row.id)) ||
+      foreignBudgets.some((row) => budgetIds.has(row.id))
     )
       throw new FinanceError('restoreUnavailable');
     const timestamp = new Date().toISOString();
+    await tx.runAsync(
+      'DELETE FROM budgets WHERE profile_id = ?',
+      LOCAL_PROFILE_ID,
+    );
+    for (const budget of backup.budgets ?? []) {
+      await tx.runAsync(
+        'INSERT INTO budgets (id, profile_id, month, category, limit_amount, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        budget.id,
+        LOCAL_PROFILE_ID,
+        budget.month,
+        budget.category,
+        budget.limit,
+        timestamp,
+        timestamp,
+      );
+    }
     await tx.runAsync(
       'DELETE FROM transactions WHERE profile_id = ?',
       LOCAL_PROFILE_ID,

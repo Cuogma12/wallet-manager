@@ -39,7 +39,7 @@ Safari, PWA cài riêng, Expo Go và app native có thể có các vùng lưu tr
 
 ## Cách lưu và bảo vệ dữ liệu
 
-- Native vẫn dùng `expo-sqlite`, file `monee.db`; schema v4 thêm mã ngân hàng/ví tùy chọn và giữ nguyên dữ liệu cũ.
+- Native vẫn dùng `expo-sqlite`, file `monee.db`; schema v5 thêm hạn mức ngân sách theo tháng/danh mục, giữ mã ngân hàng/ví của v4 và dữ liệu cũ. Không tự tạo hạn mức mẫu.
 - Web dùng SQLite WASM (`sql.js`, chỉ bundle vào web) và lưu ảnh DB vào IndexedDB `monee-finance` / store `snapshots` / key `finance`. Dùng cùng schema, migration và repository, không viết lại phép tính tiền.
 - Một thao tác chỉ thành công sau khi transaction IndexedDB báo `complete`. Nếu SQL hoặc ghi bộ nhớ lỗi, ảnh DB trước đó được phục hồi trong phiên hiện tại và bản lưu cũ vẫn còn. Không có fallback “lưu tạm thành công” khi bộ nhớ trình duyệt lỗi.
 - Có kiểm tra revision trong cùng transaction IndexedDB. Tab cũ không ghi đè được dữ liệu mới của tab khác; app yêu cầu tải lại. Khi thấy cảnh báo, giữ nội dung chưa lưu rồi reload, không bấm lưu lặp lại.
@@ -51,7 +51,7 @@ Safari, PWA cài riêng, Expo Go và app native có thể có các vùng lưu tr
 
 - Ví → Sao lưu & cài ứng dụng → Xuất bản sao lưu. Web tải JSON; native/Expo Go mở bảng chia sẻ để lưu vào Tệp/iCloud. Hủy bảng chia sẻ không có nghĩa đã lưu backup.
 - File không mã hóa, chứa số dư/tên ví/lịch sử; chỉ lưu ở nơi riêng tư. Không chứa mật khẩu, OTP, token, tài khoản đăng nhập hay device ID.
-- Backup v1 chỉ giữ dữ liệu tài chính đang hoạt động, kỳ lương và số dư gốc; không phải bản sao toàn bộ trạng thái đồng bộ/tombstone. Các ví khôi phục ở trạng thái local. Hồ sơ đang liên kết đồng bộ không được restore theo luồng local này.
+- Backup mới là v2, giữ dữ liệu tài chính đang hoạt động, kỳ lương, số dư gốc và ngân sách; không phải bản sao toàn bộ trạng thái đồng bộ/tombstone. Các ví khôi phục ở trạng thái local. Hồ sơ đang liên kết đồng bộ không được restore theo luồng local này. App vẫn nhận v1, nhưng tệp cũ không có ngân sách nên khôi phục sẽ xóa hạn mức hiện tại; màn xác nhận có cảnh báo riêng. Bản app cũ chưa hỗ trợ v2 không thể nhập bản sao mới.
 - Chọn tệp → kiểm tra ngày/số lượng → đọc cảnh báo → xác nhận đã giữ bản sao hiện tại → Xác nhận thay thế dữ liệu. Chỉ lúc xác nhận mới xóa/thay dữ liệu local trong một transaction; không chạm ngân hàng hay hồ sơ khác.
 - File sai phiên bản, hơn 10 MB, trùng ID, tham chiếu ví không tồn tại hoặc số dư không khớp bị từ chối. Sau restore, tải lại báo cáo. Chưa có nút hoàn tác nếu không giữ bản sao trước đó.
 

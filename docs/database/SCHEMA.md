@@ -14,7 +14,7 @@ profiles
 ├─ accounts
 ├─ transactions
 ├─ budgets
-└─ recurring_transactions
+└─ recurring_transactions (planned, not yet a local table)
 ```
 
 `profiles.auth_user_id` is nullable by design. It is empty in offline mode and is populated after the user signs in.
@@ -81,6 +81,28 @@ profiles
 
 The category icon is derived from the stable category key in code. It is not stored as authoritative financial data.
 
+### budgets (schema v5)
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `id` | TEXT | Client-generated stable primary key |
+| `profile_id` | TEXT | Owner; foreign key to profiles |
+| `month` | TEXT | Local calendar `YYYY-MM`, validated between 1900-01 and 9999-12 |
+| `category` | TEXT | One of the six stable expense category keys |
+| `limit_amount` | INTEGER | Positive safe integer VND; SQL also enforces greater than zero |
+| `sync_state` | TEXT | Defaults to `pending`; future sync metadata only |
+| `created_at` / `updated_at` / `deleted_at` | TEXT | ISO timestamps and nullable soft-delete tombstone |
+
+`idx_budgets_profile_month_category` uniquely indexes `(profile_id, month, category)` where `deleted_at IS NULL`. Deleted limits can be recreated with a new ID. Edits retain their ID and creation time. All reads, writes and validation use the same profile scope and serialized database queue as the ledger.
+
+Budget spending sums active, non-demo expenses in the local calendar month of `occurred_at`, across all wallets. Income, transfers and salary periods do not affect it. Each transaction category contributes to at most one active limit. Unbudgeted spending is shown separately, not silently included in the budgeted-spending percentage. Totals use exact bigint arithmetic even when several safe per-row values exceed the safe aggregate number range.
+
+Warnings appear **inside the app**, not as push notifications: normal below 80%, near from 80% to below 100%, exhausted at 100%, over above 100%. Percent labels round to a whole percent but thresholds use exact amounts. Progress bars clamp at 100%; overrun amounts remain visible. Limits do not change account balances, create transactions, restrict spending, carry over or repeat automatically next month. Transaction edits/deletions recalculate usage from the active ledger.
+
+Version 5 creates the empty budgets table and partial unique index in the existing migration transaction, without changing wallets, transactions or settings. Failure rolls back schema/version together. Fresh installs and upgrades from v1-v4 pass through all needed migrations. No budgets or demo limits are seeded.
+
+Portable backup **v2** requires a `budgets` array of allowlisted `{ id, month, category, limit }` records. Import validates unique IDs and unique month/category pairs, ownership collisions, category/month and safe positive amounts before replacing any data. Export excludes deleted limits and owner/auth/sync metadata. Both v1 and v2 retain optional account `providerId`; old clients must not import v2. Restoring v1 explicitly clears current budgets because old files contain no limits; the confirmation screen warns about this. Restore replaces budgets, wallets, transactions and money settings atomically for the local profile, preserving other profiles. Files are not encrypted.
+
 ## Financial setup rules (schema v3)
 
 - Fresh installations start with a local profile, zeroed legacy settings, and no sample accounts/transactions.
@@ -100,7 +122,7 @@ The category icon is derived from the stable category key in code. It is not sto
 - Salary edits preserve `salary_month` independently of receipt date unless explicitly changed. Uniqueness checks exclude the row being edited but still check other active real salaries, including legacy null-month salaries. Removing/changing a salary releases its old month. Receipt dates for salaries cannot be in the future.
 - Salary already included in an initial wallet balance is part of the ledger: changing its amount applies only the difference; deleting it subtracts that income. The earlier baseline reduction is not undone. Moving it to another wallet reverses the old wallet contribution and credits the new wallet.
 - Overview and Transactions filter by the local calendar month of `occurred_at`, not `salary_month` or the UTC date prefix. Transfers do not count as income or expenses. Recent transactions are sorted by actual instant. Total assets always show current wallet balances, not a historical month-end balance.
-- The spending chart shows at most seven calendar days inside the selected month: through today for the current month, otherwise through that month's last day. Empty periods show zero and an empty-state message. Overview no longer shows a fabricated budget, trend percentage, fixed date or sample chart. The separate Budgets screen is still a prototype.
+- The spending chart shows at most seven calendar days inside the selected month: through today for the current month, otherwise through that month's last day. Empty periods show zero and an empty-state message. Overview no longer shows a fabricated budget, trend percentage, fixed date or sample chart. The separate Budgets screen uses real limits as described in schema v5 above.
 
 ### Explicit demo cleanup
 
@@ -108,7 +130,7 @@ Only an affirmative UI confirmation runs cleanup. Tagged sample transactions get
 
 ### Explicit full local reset
 
-The separate **Xóa toàn bộ dữ liệu** action requires a destructive confirmation. It hard-deletes all transactions (including salary and soft-deleted/demo rows) and wallets belonging to the current local profile, then zeroes its legacy money settings in one transaction. Other profiles, the local identity, schema, and source files are unchanged. It is never triggered by migrations or startup. Unlike demo cleanup, there are no tombstones to restore: recovery requires a pre-existing backup. It does not delete bank/e-wallet data or any future remote data; a synced production account will require a separate remote-reset workflow.
+The separate **Xóa toàn bộ dữ liệu** action requires a destructive confirmation. It hard-deletes all budgets, transactions (including salary and soft-deleted/demo rows) and wallets belonging to the current local profile, then zeroes its legacy money settings in one transaction. Other profiles, the local identity, schema, and source files are unchanged. It is never triggered by migrations or startup. Unlike demo cleanup, there are no tombstones to restore: recovery requires a pre-existing backup. It does not delete bank/e-wallet data or any future remote data; a synced production account will require a separate remote-reset workflow.
 
 ### Upgrade safety
 
