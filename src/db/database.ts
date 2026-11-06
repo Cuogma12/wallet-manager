@@ -62,6 +62,25 @@ export async function migrateDbIfNeeded(db: FinanceDatabase) {
           CREATE UNIQUE INDEX idx_budgets_profile_month_category
             ON budgets(profile_id, month, category) WHERE deleted_at IS NULL;
         `);
+        currentVersion = 5;
+      }
+      if (currentVersion === 5) {
+        await db.execAsync(`
+          CREATE TABLE custom_categories (
+            id TEXT PRIMARY KEY NOT NULL,
+            profile_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            normalized_name TEXT NOT NULL,
+            icon TEXT NOT NULL DEFAULT 'tag-outline',
+            sync_state TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            deleted_at TEXT,
+            FOREIGN KEY (profile_id) REFERENCES profiles(id)
+          );
+          CREATE UNIQUE INDEX idx_custom_categories_profile_name
+            ON custom_categories(profile_id, normalized_name) WHERE deleted_at IS NULL;
+        `);
       }
       await db.execAsync(`PRAGMA user_version = ${DB_SCHEMA_VERSION}`);
     });

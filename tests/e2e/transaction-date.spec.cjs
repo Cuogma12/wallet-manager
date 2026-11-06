@@ -11,6 +11,9 @@ async function setup(page) {
   await page.getByRole('button', { name: 'Lưu ví', exact: true }).click();
   await expect(page).not.toHaveURL(/\/manage-account(?:[?#]|$)/);
   await page.goto('/add');
+  await page
+    .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+    .click();
 }
 
 test('today/yesterday shortcuts and calendar save a backdated expense in its selected month offline', async ({
@@ -54,6 +57,9 @@ test('today/yesterday shortcuts and calendar save a backdated expense in its sel
   });
   await context.setOffline(true);
   await page.goto('/add');
+  await page
+    .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+    .click();
   await page
     .getByRole('button', { name: 'Chọn ngày trên lịch', exact: true })
     .click();

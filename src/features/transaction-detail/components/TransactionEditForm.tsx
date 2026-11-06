@@ -57,6 +57,7 @@ export function TransactionEditForm({
         type={form.fields.type}
         selectedKey={form.fields.category}
         onChange={(value) => form.change('category', value)}
+        customCategories={form.customCategories}
         disabled={form.isSaving}
       />
       {form.fields.type === 'income' && form.fields.category === 'salary' && (

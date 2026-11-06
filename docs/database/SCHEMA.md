@@ -14,6 +14,7 @@ profiles
 ├─ accounts
 ├─ transactions
 ├─ budgets
+├─ custom_categories
 └─ recurring_transactions (planned, not yet a local table)
 ```
 
@@ -63,35 +64,35 @@ profiles
 
 ### transactions
 
-| Column                                     | Type    | Rule                                                                                                          |
-| ------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------- |
-| `id`                                       | TEXT    | Client-generated stable ID                                                                                    |
-| `profile_id`                               | TEXT    | Owner profile                                                                                                 |
-| `account_id`                               | TEXT    | Related financial account                                                                                     |
-| `type`                                     | TEXT    | `income`, `expense`, or `transfer`                                                                            |
-| `amount`                                   | INTEGER | Positive VND integer; direction comes from `type`                                                             |
-| `category`                                 | TEXT    | Stable key such as `food` or `salary`, never translated text                                                  |
-| `occurred_at`                              | TEXT    | Actual transaction time                                                                                       |
-| `source`                                   | TEXT    | `manual`, `imported`, or `bank-api`                                                                           |
-| `external_id`                              | TEXT    | Provider transaction ID for de-duplication                                                                    |
-| `salary_month`                             | TEXT    | Nullable local-calendar `YYYY-MM`, independent of receipt date. One active, non-demo salary per profile/month |
-| `is_demo`                                  | INTEGER | `1` only for an exact recognized legacy seed transaction                                                      |
-| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                              |
-| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                                 |
+| Column                                     | Type    | Rule                                                                                                             |
+| ------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------- |
+| `id`                                       | TEXT    | Client-generated stable ID                                                                                       |
+| `profile_id`                               | TEXT    | Owner profile                                                                                                    |
+| `account_id`                               | TEXT    | Related financial account                                                                                        |
+| `type`                                     | TEXT    | `income`, `expense`, or `transfer`                                                                               |
+| `amount`                                   | INTEGER | Positive VND integer; direction comes from `type`                                                                |
+| `category`                                 | TEXT    | Built-in stable key such as `food`/`salary`, or a client-generated `custom_categories.id`; never translated text |
+| `occurred_at`                              | TEXT    | Actual transaction time                                                                                          |
+| `source`                                   | TEXT    | `manual`, `imported`, or `bank-api`                                                                              |
+| `external_id`                              | TEXT    | Provider transaction ID for de-duplication                                                                       |
+| `salary_month`                             | TEXT    | Nullable local-calendar `YYYY-MM`, independent of receipt date. One active, non-demo salary per profile/month    |
+| `is_demo`                                  | INTEGER | `1` only for an exact recognized legacy seed transaction                                                         |
+| `sync_state`                               | TEXT    | `pending`, `synced`, or `failed`                                                                                 |
+| `created_at` / `updated_at` / `deleted_at` | TEXT    | Sync and soft-delete metadata                                                                                    |
 
 The category icon is derived from the stable category key in code. It is not stored as authoritative financial data.
 
 ### budgets (schema v5)
 
-| Column | Type | Rule |
-| --- | --- | --- |
-| `id` | TEXT | Client-generated stable primary key |
-| `profile_id` | TEXT | Owner; foreign key to profiles |
-| `month` | TEXT | Local calendar `YYYY-MM`, validated between 1900-01 and 9999-12 |
-| `category` | TEXT | One of the six stable expense category keys |
-| `limit_amount` | INTEGER | Positive safe integer VND; SQL also enforces greater than zero |
-| `sync_state` | TEXT | Defaults to `pending`; future sync metadata only |
-| `created_at` / `updated_at` / `deleted_at` | TEXT | ISO timestamps and nullable soft-delete tombstone |
+| Column                                     | Type    | Rule                                                                                          |
+| ------------------------------------------ | ------- | --------------------------------------------------------------------------------------------- |
+| `id`                                       | TEXT    | Client-generated stable primary key                                                           |
+| `profile_id`                               | TEXT    | Owner; foreign key to profiles                                                                |
+| `month`                                    | TEXT    | Local calendar `YYYY-MM`, validated between 1900-01 and 9999-12                               |
+| `category`                                 | TEXT    | One of the six built-in expense keys or an active `custom_categories.id` owned by the profile |
+| `limit_amount`                             | INTEGER | Positive safe integer VND; SQL also enforces greater than zero                                |
+| `sync_state`                               | TEXT    | Defaults to `pending`; future sync metadata only                                              |
+| `created_at` / `updated_at` / `deleted_at` | TEXT    | ISO timestamps and nullable soft-delete tombstone                                             |
 
 `idx_budgets_profile_month_category` uniquely indexes `(profile_id, month, category)` where `deleted_at IS NULL`. Deleted limits can be recreated with a new ID. Edits retain their ID and creation time. All reads, writes and validation use the same profile scope and serialized database queue as the ledger.
 
@@ -101,7 +102,23 @@ Warnings appear **inside the app**, not as push notifications: normal below 80%,
 
 Version 5 creates the empty budgets table and partial unique index in the existing migration transaction, without changing wallets, transactions or settings. Failure rolls back schema/version together. Fresh installs and upgrades from v1-v4 pass through all needed migrations. No budgets or demo limits are seeded.
 
-Portable backup **v2** requires a `budgets` array of allowlisted `{ id, month, category, limit }` records. Import validates unique IDs and unique month/category pairs, ownership collisions, category/month and safe positive amounts before replacing any data. Export excludes deleted limits and owner/auth/sync metadata. Both v1 and v2 retain optional account `providerId`; old clients must not import v2. Restoring v1 explicitly clears current budgets because old files contain no limits; the confirmation screen warns about this. Restore replaces budgets, wallets, transactions and money settings atomically for the local profile, preserving other profiles. Files are not encrypted.
+### custom_categories (schema v6)
+
+| Column                                     | Type | Rule                                                                    |
+| ------------------------------------------ | ---- | ----------------------------------------------------------------------- |
+| `id`                                       | TEXT | Client-generated stable primary key; stored by transactions and budgets |
+| `profile_id`                               | TEXT | Owner; foreign key to profiles                                          |
+| `name`                                     | TEXT | User-facing name, collapsed whitespace, 1–40 characters                 |
+| `normalized_name`                          | TEXT | Accent/case-insensitive comparison value; unique per active profile     |
+| `icon`                                     | TEXT | Currently fixed to the shared `tag-outline` icon                        |
+| `sync_state`                               | TEXT | Defaults to `pending`; future sync metadata only                        |
+| `created_at` / `updated_at` / `deleted_at` | TEXT | ISO timestamps and nullable soft-delete tombstone                       |
+
+`idx_custom_categories_profile_name` prevents duplicate active names after trimming, whitespace collapse, accent removal and case folding. Repositories validate that every new expense/budget category is either built in or an active custom category owned by the local profile. Category names are presentation data; transaction and budget rows retain the stable ID.
+
+Version 6 creates the empty custom-category table and partial unique index in the existing migration transaction. It does not infer categories or alter existing wallets, transactions, budgets or settings. Failure rolls back schema/version together; fresh installs and upgrades from v1-v5 pass through every required migration.
+
+Portable backup **v3** requires both the v2 `budgets` array and a `customCategories` array of allowlisted `{ id, name, icon }` records. Import validates category IDs/names, transaction and budget references, duplicates and ownership collisions before replacing any data. Export excludes deleted rows and owner/auth/sync metadata. Restoring v1 clears budgets and custom categories; restoring v2 keeps its budgets but clears custom categories because old files did not contain them. The confirmation screen warns for each missing data class. Restore replaces custom categories, budgets, wallets, transactions and money settings atomically for the local profile, preserving other profiles. Files are not encrypted. Old app versions must not import newer backup versions.
 
 ## Financial setup rules (schema v3)
 
@@ -115,7 +132,7 @@ Portable backup **v2** requires a `budgets` array of allowlisted `{ id, month, c
 
 ### Transaction editing and monthly reporting (schema v3, no new migration)
 
-- Transaction detail is reachable from both Overview and Transactions. Manual income/expense rows can be edited; imported, bank-API and transfer rows remain read-only in this release.
+- Transaction detail is reachable from both Overview and Transactions. Manual income/expense rows and locally pasted notifications (source `imported`, external ID prefix `pasted-`) can be edited/deleted. Bank-API, other external imports and transfers remain read-only.
 - Editing preserves the transaction ID and creation time. The repository atomically removes its previous signed contribution and applies the new one to the selected wallet(s); `opening_balance` is unchanged. Money calculations use exact intermediate arithmetic and reject out-of-range final balances.
 - Deleting requires an in-app confirmation and reverses the contribution once. It sets `deleted_at`, `updated_at` and `sync_state = pending`; active queries exclude the tombstone. There is no restore UI. Missing, already-deleted, foreign-profile or read-only records cannot change balances.
 - Every affected wallet must be active and owned by the local profile. Failed edits/deletions roll back the entire operation. Editing adopts a demo transaction as real (`is_demo = 0`), so future demo cleanup cannot remove the edited record.
@@ -130,7 +147,7 @@ Only an affirmative UI confirmation runs cleanup. Tagged sample transactions get
 
 ### Explicit full local reset
 
-The separate **Xóa toàn bộ dữ liệu** action requires a destructive confirmation. It hard-deletes all budgets, transactions (including salary and soft-deleted/demo rows) and wallets belonging to the current local profile, then zeroes its legacy money settings in one transaction. Other profiles, the local identity, schema, and source files are unchanged. It is never triggered by migrations or startup. Unlike demo cleanup, there are no tombstones to restore: recovery requires a pre-existing backup. It does not delete bank/e-wallet data or any future remote data; a synced production account will require a separate remote-reset workflow.
+The separate **Xóa toàn bộ dữ liệu** action requires a destructive confirmation. It hard-deletes all budgets, transactions (including salary and soft-deleted/demo rows), custom categories and wallets belonging to the current local profile, then zeroes its legacy money settings in one transaction. Other profiles, the local identity, schema, and source files are unchanged. It is never triggered by migrations or startup. Unlike demo cleanup, there are no tombstones to restore: recovery requires a pre-existing backup. It does not delete bank/e-wallet data or any future remote data; a synced production account will require a separate remote-reset workflow.
 
 ### Upgrade safety
 

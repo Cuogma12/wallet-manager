@@ -5,6 +5,7 @@ import type {
   FinanceSettings,
 } from '@/shared/types/finance';
 import type { Budget } from '@/shared/types/budget';
+import type { CustomCategory } from '@/shared/types/category';
 
 export type BackupAccount = {
   id: string;
@@ -35,7 +36,7 @@ export type BackupTransaction = {
 
 export type FinanceBackup = {
   format: 'monee-backup';
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   currency: 'VND';
   createdAt: string;
   accounts: BackupAccount[];
@@ -43,4 +44,6 @@ export type FinanceBackup = {
   settings: FinanceSettings;
   /** Required in v2; absent in legacy v1 backups. */
   budgets?: Budget[];
+  /** Required in v3; absent in legacy v1/v2 backups. */
+  customCategories?: CustomCategory[];
 };

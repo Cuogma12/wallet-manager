@@ -11,6 +11,9 @@ async function openForm(page) {
   await page.getByRole('button', { name: 'Lưu ví', exact: true }).click();
   await expect(page).not.toHaveURL(/\/manage-account(?:[?#]|$)/);
   await page.goto('/add');
+  await page
+    .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+    .click();
 }
 
 test('typing/editing and focus changes keep raw digits stable, with a separate formatted preview and exact saved money', async ({

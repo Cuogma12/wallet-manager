@@ -19,12 +19,40 @@ export function BudgetEditor({
         {t(model.editor.id ? 'budgets.editTitle' : 'budgets.add')}
       </Text>
       <Text className={uiClasses.hint}>{model.monthLabel}</Text>
-      <CategoryPicker
-        type="expense"
-        selectedKey={model.editor.category}
-        onChange={model.changeCategory}
-        disabled={model.isSaving}
-      />
+      {model.editor.customName === null ? (
+        <>
+          <CategoryPicker
+            type="expense"
+            selectedKey={model.editor.category}
+            onChange={model.changeCategory}
+            customCategories={model.customCategories}
+            disabled={model.isSaving}
+          />
+          <AppButton
+            label={t('budgets.useCustomCategory')}
+            variant="secondary"
+            onPress={model.useCustomCategory}
+            disabled={model.isSaving}
+          />
+        </>
+      ) : (
+        <>
+          <FormField
+            label={t('budgets.customCategoryName')}
+            placeholder={t('budgets.customCategoryPlaceholder')}
+            value={model.editor.customName}
+            onChangeText={model.changeCustomName}
+            maxLength={40}
+            editable={!model.isSaving}
+          />
+          <AppButton
+            label={t('budgets.useExistingCategory')}
+            variant="secondary"
+            onPress={model.useExistingCategory}
+            disabled={model.isSaving}
+          />
+        </>
+      )}
       <FormField
         label={t('budgets.limit')}
         placeholder={t('budgets.limitPlaceholder')}

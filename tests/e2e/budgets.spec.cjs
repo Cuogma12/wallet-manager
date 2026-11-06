@@ -72,6 +72,9 @@ test('real monthly budgets track offline expenses, validate duplicates, edit and
   ]) {
     await page.goto('/add');
     await page
+      .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+      .click();
+    await page
       .getByRole('textbox', { name: 'SỐ TIỀN', exact: true })
       .fill(value);
     await page

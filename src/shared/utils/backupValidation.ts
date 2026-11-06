@@ -4,8 +4,13 @@ import type {
   FinanceBackup,
 } from '@/shared/types/backup';
 import { getAccountProvider } from '@/shared/constants/accountProviders';
-import { expenseCategories } from '@/shared/constants/categories';
 import type { Budget } from '@/shared/types/budget';
+import type { CustomCategory } from '@/shared/types/category';
+import {
+  isBuiltInExpenseCategory,
+  MAX_CUSTOM_CATEGORY_NAME_LENGTH,
+  normalizeCategoryName,
+} from '@/shared/utils/category';
 import {
   assertMoney,
   assertMonth,
@@ -62,21 +67,47 @@ export function parseBackup(value: unknown): FinanceBackup {
     const input = record(value);
     if (
       input.format !== 'monee-backup' ||
-      (input.version !== 1 && input.version !== 2) ||
+      (input.version !== 1 && input.version !== 2 && input.version !== 3) ||
       input.currency !== 'VND'
     )
       fail();
+    const categoryIds = new Set<string>();
+    const categoryNames = new Set<string>();
+    const customCategories =
+      input.version === 3
+        ? rows(input.customCategories).map((entry): CustomCategory => {
+            const row = record(entry);
+            const categoryId = id(row.id);
+            const name = string(row.name, MAX_CUSTOM_CATEGORY_NAME_LENGTH)
+              .trim()
+              .replace(/\s+/g, ' ');
+            const normalizedName = normalizeCategoryName(name);
+            if (
+              !name ||
+              isBuiltInExpenseCategory(categoryId) ||
+              categoryIds.has(categoryId) ||
+              categoryNames.has(normalizedName)
+            )
+              fail();
+            categoryIds.add(categoryId);
+            categoryNames.add(normalizedName);
+            return { id: categoryId, name, icon: 'tag-outline' };
+          })
+        : undefined;
     const budgetKeys = new Set<string>();
     const budgetIds = new Set<string>();
     const budgets =
-      input.version === 2
+      input.version === 2 || input.version === 3
         ? rows(input.budgets).map((entry): Budget => {
             const row = record(entry);
             const budgetId = id(row.id);
             const month = string(row.month, 7);
             assertMonth(month);
             const category = string(row.category, 100);
-            if (!expenseCategories.some((item) => item.key === category))
+            if (
+              !isBuiltInExpenseCategory(category) &&
+              !categoryIds.has(category)
+            )
               fail();
             const key = `${month}:${category}`;
             if (budgetKeys.has(key) || budgetIds.has(budgetId)) fail();
@@ -139,6 +170,14 @@ export function parseBackup(value: unknown): FinanceBackup {
           if (salaryMonths.has(month)) fail();
           salaryMonths.add(month);
         }
+        const category = string(row.category, 100);
+        if (
+          input.version === 3 &&
+          row.type === 'expense' &&
+          !isBuiltInExpenseCategory(category) &&
+          !categoryIds.has(category)
+        )
+          fail();
         const externalId =
           row.externalId === undefined
             ? undefined
@@ -155,7 +194,7 @@ export function parseBackup(value: unknown): FinanceBackup {
           merchant: string(row.merchant, 1000),
           amount: money(row.amount),
           type: row.type as BackupTransaction['type'],
-          category: string(row.category, 100),
+          category,
           occurredAt,
           note: row.note === undefined ? undefined : string(row.note, 10000),
           source: row.source as BackupTransaction['source'],
@@ -190,6 +229,7 @@ export function parseBackup(value: unknown): FinanceBackup {
       format: 'monee-backup',
       version: input.version,
       ...(budgets ? { budgets } : {}),
+      ...(customCategories ? { customCategories } : {}),
       currency: 'VND',
       createdAt: date(input.createdAt),
       accounts,

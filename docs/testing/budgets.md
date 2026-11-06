@@ -2,11 +2,11 @@
 
 ## Phạm vi
 
-Hạn mức theo danh mục/tháng, cộng chi thực tế từ tất cả ví, hoạt động offline. Cảnh báo trong app ở 80% / 100% / vượt 100%, không có push notification. Không tự lặp lại hoặc chuyển dư sang tháng sau. DB v5 và backup v2; vẫn nhận backup v1 với cảnh báo xóa hạn mức.
+Hạn mức theo danh mục/tháng, gồm cả hạng mục tự đặt tên, cộng chi thực tế từ tất cả ví và hoạt động offline. Cảnh báo trong app ở 80% / 100% / vượt 100%, không có push notification. Không tự lặp lại hoặc chuyển dư sang tháng sau. DB v6 và backup v3; vẫn nhận backup v1/v2 với cảnh báo dữ liệu không có trong phiên bản cũ.
 
 ## Tự động
 
-- `npm test`: migration v4 → v5, rollback/retry, CRUD, trùng hạn mức và thao tác đồng thời, profile khác, tombstone, tháng theo giờ máy, tính tiền chính xác, sửa/xóa khoản chi, backup v1/v2 và reset/restore atomic.
+- `npm test`: migration v4 → v5 và v5 → v6, rollback/retry, CRUD, hạng mục riêng/trùng tên, trùng hạn mức và thao tác đồng thời, profile khác, tombstone, tháng theo giờ máy, tính tiền chính xác, sửa/xóa khoản chi, backup v1/v2/v3 và reset/restore atomic.
 - `npm run test:pwa`: Chromium + WebKit, màn rộng 320px, thêm/sửa/xóa, hủy xóa, lỗi số tiền/trùng danh mục, đổi tháng, 80/100/120%, giữ số dư, reload/offline và khôi phục ngân sách từ file tải về.
 - `npx tsc --noEmit`, `npx expo lint`, `npm run build:web`, export iOS.
 
@@ -21,7 +21,7 @@ Hạn mức theo danh mục/tháng, cộng chi thực tế từ tất cả ví, 
 - [ ] Bàn phím mở không đẩy input ra ngoài màn hình; cuộn tới Lưu/Hủy. Nút sửa/xóa dễ chạm, có nhãn đọc màn hình.
 - [ ] Hủy sửa/xóa không thay dữ liệu. Xóa hạn mức không xóa khoản chi hoặc thay số dư; khoản chi sang nhóm chưa có hạn mức.
 - [ ] Cài PWA, chờ sẵn sàng offline rồi bật máy bay, tạo/sửa/xóa, đóng/mở lại: dữ liệu vẫn còn.
-- [ ] Xuất backup v2, thay hạn mức rồi nhập lại: kiểm tra số lượng, xác nhận riêng, khôi phục đúng ID/hạn mức/tháng. Tệp sai không làm mất dữ liệu.
+- [ ] Xuất backup v3, thay hạn mức/hạng mục rồi nhập lại: kiểm tra số lượng, xác nhận riêng, khôi phục đúng ID/hạn mức/tháng. Tệp sai không làm mất dữ liệu.
 - [ ] Chọn backup v1: có cảnh báo không chứa ngân sách. Hủy giữ nguyên; xác nhận thay thế xóa hạn mức hiện tại theo cảnh báo.
 - [ ] Reset toàn bộ có cảnh báo xóa ngân sách; hủy không thay dữ liệu. Chỉ xác nhận trên hồ sơ test đã sao lưu.
 

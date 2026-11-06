@@ -46,7 +46,9 @@ test('v4 migration preserves ledger and rolls back/retries atomically', async (t
     categoryIcon: '',
   });
   const before = await finance.loadFinance(db);
-  db.raw.exec('DROP TABLE budgets; PRAGMA user_version = 4');
+  db.raw.exec(
+    'DROP TABLE custom_categories; DROP TABLE budgets; PRAGMA user_version = 4',
+  );
   const original = db.execAsync;
   db.execAsync = async (sql) => {
     await original(sql);
@@ -64,7 +66,7 @@ test('v4 migration preserves ledger and rolls back/retries atomically', async (t
   db.execAsync = original;
   await migrateDbIfNeeded(db);
   await migrateDbIfNeeded(db);
-  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 5);
+  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 6);
   assert.deepEqual(await finance.loadFinance(db), before);
   assert.equal(db.raw.prepare('PRAGMA foreign_key_check').all().length, 0);
 });
@@ -270,11 +272,11 @@ test('editing or deleting a real expense recalculates budget use without cached 
   );
 });
 
-test('v2 backup roundtrips budgets; legacy v1 restore explicitly replaces limits with empty data', async (t) => {
+test('v3 backup roundtrips budgets; legacy v1 restore explicitly replaces limits with empty data', async (t) => {
   const source = await fresh(t);
   await repo.saveBudget(source, input());
   const snapshot = await backup.exportBackup(source);
-  assert.equal(snapshot.version, 2);
+  assert.equal(snapshot.version, 3);
   assert.equal(snapshot.budgets.length, 1);
   const target = await fresh(t);
   await backup.restoreBackup(target, JSON.parse(JSON.stringify(snapshot)));
@@ -283,12 +285,12 @@ test('v2 backup roundtrips budgets; legacy v1 restore explicitly replaces limits
     (await finance.loadFinance(target)).budgets.map((row) => ({ ...row })),
     snapshot.budgets,
   );
-  const { budgets, ...legacy } = snapshot;
+  const { budgets, customCategories, ...legacy } = snapshot;
   await backup.restoreBackup(target, { ...legacy, version: 1 });
   assert.deepEqual((await finance.loadFinance(target)).budgets, []);
 });
 
-test('malformed v2 backup budgets fail validation before any data is changed', async (t) => {
+test('malformed v3 backup budgets fail validation before any data is changed', async (t) => {
   const db = await fresh(t);
   await repo.saveBudget(db, input());
   const snapshot = await backup.exportBackup(db);

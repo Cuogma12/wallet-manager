@@ -187,7 +187,7 @@ test('v3 migration preserves all money and names, never guesses a provider, and 
   });
   const before = await repo.loadFinance(db);
   db.raw.exec(
-    'DROP TABLE budgets; ALTER TABLE accounts DROP COLUMN provider_id; PRAGMA user_version = 3;',
+    'DROP TABLE custom_categories; DROP TABLE budgets; ALTER TABLE accounts DROP COLUMN provider_id; PRAGMA user_version = 3;',
   );
   const original = db.execAsync;
   db.execAsync = async (sql) => {
@@ -208,7 +208,7 @@ test('v3 migration preserves all money and names, never guesses a provider, and 
   await migrateDbIfNeeded(db);
   await migrateDbIfNeeded(db);
   assert.deepEqual(await repo.loadFinance(db), before);
-  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 5);
+  assert.equal(db.raw.prepare('PRAGMA user_version').get().user_version, 6);
   assert.equal(db.raw.prepare('PRAGMA foreign_key_check').all().length, 0);
 });
 

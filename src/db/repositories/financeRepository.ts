@@ -1,5 +1,9 @@
 import { LOCAL_PROFILE_ID } from '@/db/constants';
 import { readBudgets } from '@/db/repositories/budgetRepository';
+import {
+  readCustomCategories,
+  requireExpenseCategory,
+} from '@/db/repositories/categoryRepository';
 import { createClientId } from '@/db/ids';
 import {
   serializeDatabase,
@@ -8,10 +12,7 @@ import {
 } from '@/db/operations';
 import { accountTypes } from '@/shared/constants/accountTypes';
 import { getAccountProvider } from '@/shared/constants/accountProviders';
-import {
-  expenseCategories,
-  getCategoryIcon,
-} from '@/shared/constants/categories';
+import { getCategoryIcon } from '@/shared/constants/categories';
 import {
   assertMoney,
   adjustBalance,
@@ -28,6 +29,7 @@ import type {
   Transaction,
   UpdateTransaction,
 } from '@/shared/types/finance';
+import { isEditableTransactionSource } from '@/shared/utils/transactionSource';
 
 type AccountRow = {
   id: string;
@@ -54,28 +56,32 @@ type TransactionRow = {
   is_reviewed: number;
   salary_month: string | null;
   is_demo: number;
+  external_id: string | null;
 };
 
 export function loadFinance(db: FinanceDatabase) {
   return serializeDatabase(db, async () => {
-    const [rows, transactions, settings, budgets] = await Promise.all([
-      db.getAllAsync<AccountRow>(
-        'SELECT * FROM accounts WHERE profile_id = ? AND deleted_at IS NULL ORDER BY name',
-        LOCAL_PROFILE_ID,
-      ),
-      db.getAllAsync<TransactionRow>(
-        'SELECT * FROM transactions WHERE profile_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC',
-        LOCAL_PROFILE_ID,
-      ),
-      db.getFirstAsync<{
-        initial_balance: number;
-        monthly_income: number;
-        salary_day: number;
-      }>('SELECT * FROM settings WHERE profile_id = ?', LOCAL_PROFILE_ID),
-      readBudgets(db),
-    ]);
+    const [rows, transactions, settings, budgets, customCategories] =
+      await Promise.all([
+        db.getAllAsync<AccountRow>(
+          'SELECT * FROM accounts WHERE profile_id = ? AND deleted_at IS NULL ORDER BY name',
+          LOCAL_PROFILE_ID,
+        ),
+        db.getAllAsync<TransactionRow>(
+          'SELECT * FROM transactions WHERE profile_id = ? AND deleted_at IS NULL ORDER BY occurred_at DESC',
+          LOCAL_PROFILE_ID,
+        ),
+        db.getFirstAsync<{
+          initial_balance: number;
+          monthly_income: number;
+          salary_day: number;
+        }>('SELECT * FROM settings WHERE profile_id = ?', LOCAL_PROFILE_ID),
+        readBudgets(db),
+        readCustomCategories(db),
+      ]);
     return {
       budgets,
+      customCategories,
       accounts: rows.map((row): Account => ({
         id: row.id,
         name: row.name,
@@ -102,6 +108,7 @@ export function loadFinance(db: FinanceDatabase) {
         isReviewed: row.is_reviewed === 1,
         salaryMonth: row.salary_month ?? undefined,
         isDemo: row.is_demo === 1,
+        externalId: row.external_id ?? undefined,
       })),
       settings: settings
         ? ({
@@ -242,24 +249,39 @@ async function insertTransaction(
   includedInBalance: boolean,
 ) {
   const account = await requireAccount(db, input.accountId);
+  const source = input.source ?? 'manual';
+  const externalId = input.externalId?.trim() || null;
+  if (externalId) {
+    const duplicate = await db.getFirstAsync<{ id: string }>(
+      `SELECT id FROM transactions
+       WHERE profile_id = ? AND source = ? AND external_id = ? LIMIT 1`,
+      LOCAL_PROFILE_ID,
+      source,
+      externalId,
+    );
+    if (duplicate) throw new FinanceError('duplicateTransaction');
+  }
   const timestamp = new Date().toISOString();
   const delta = input.type === 'income' ? input.amount : -input.amount;
   assertMoney(account.balance + (includedInBalance ? 0 : delta), true);
   await db.runAsync(
     `INSERT INTO transactions
       (id, profile_id, account_id, title, merchant, amount, type, category, occurred_at, note, source,
-       is_reviewed, sync_state, created_at, updated_at, salary_month, is_demo)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'manual', 1, 'pending', ?, ?, ?, 0)`,
+       is_reviewed, external_id, sync_state, created_at, updated_at, salary_month, is_demo)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 0)`,
     createClientId('tx'),
     LOCAL_PROFILE_ID,
     input.accountId,
     input.title.trim(),
-    input.title.trim(),
+    input.merchant?.trim() || input.title.trim(),
     input.amount,
     input.type,
     input.category,
     input.occurredAt,
     input.note ?? null,
+    source,
+    input.isReviewed === false ? 0 : 1,
+    externalId,
     timestamp,
     timestamp,
     salaryMonth,
@@ -290,9 +312,18 @@ function validateTransaction(input: NewTransaction) {
     throw new FinanceError('unsupportedTransfer');
   if (!Number.isFinite(new Date(input.occurredAt).getTime()))
     throw new FinanceError('invalidDate');
+  const source = input.source ?? 'manual';
   if (
-    !expenseCategories.some((item) => item.key === input.category) &&
-    !(input.type === 'income' && input.category === 'salary')
+    !['manual', 'imported'].includes(source) ||
+    (source === 'imported' &&
+      (!input.externalId?.trim() || input.externalId.length > 256)) ||
+    (source === 'manual' && input.externalId !== undefined)
+  )
+    throw new FinanceError('invalidImport');
+  if (
+    input.type === 'income' &&
+    input.category !== 'salary' &&
+    input.category !== 'other'
   )
     throw new FinanceError('invalidCategory');
 }
@@ -304,7 +335,13 @@ async function requireEditableTransaction(db: FinanceDatabase, id: string) {
     LOCAL_PROFILE_ID,
   );
   if (!row) throw new FinanceError('transactionNotFound');
-  if (row.source !== 'manual') throw new FinanceError('readOnlyTransaction');
+  if (
+    !isEditableTransactionSource({
+      source: row.source,
+      externalId: row.external_id ?? undefined,
+    })
+  )
+    throw new FinanceError('readOnlyTransaction');
   if (row.type === 'transfer') throw new FinanceError('unsupportedTransfer');
   return row;
 }
@@ -317,6 +354,8 @@ export function updateTransaction(
   validateTransaction(input);
   return writeDatabase(db, async (tx) => {
     const old = await requireEditableTransaction(tx, input.id);
+    if (input.type === 'expense')
+      await requireExpenseCategory(tx, input.category);
     const salaryMonth =
       input.type === 'income' && input.category === 'salary'
         ? (input.salaryMonth ??
@@ -419,6 +458,8 @@ export function addTransaction(db: FinanceDatabase, input: NewTransaction) {
       ? getMonthKey(new Date(input.occurredAt))
       : null;
   return writeDatabase(db, async (tx) => {
+    if (input.type === 'expense')
+      await requireExpenseCategory(tx, input.category);
     if (month) await assertSalaryAvailable(tx, month);
     await insertTransaction(tx, input, month, false);
   });
@@ -507,6 +548,10 @@ export function resetFinancialData(db: FinanceDatabase) {
     );
     await tx.runAsync(
       'DELETE FROM transactions WHERE profile_id = ?',
+      LOCAL_PROFILE_ID,
+    );
+    await tx.runAsync(
+      'DELETE FROM custom_categories WHERE profile_id = ?',
       LOCAL_PROFILE_ID,
     );
     await tx.runAsync(

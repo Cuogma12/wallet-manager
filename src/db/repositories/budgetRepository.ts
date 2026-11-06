@@ -1,7 +1,7 @@
 import { LOCAL_PROFILE_ID } from '@/db/constants';
 import { createClientId } from '@/db/ids';
 import { writeDatabase, type FinanceDatabase } from '@/db/operations';
-import { expenseCategories } from '@/shared/constants/categories';
+import { requireExpenseCategory } from '@/db/repositories/categoryRepository';
 import type { Budget, SaveBudget } from '@/shared/types/budget';
 import {
   assertMoney,
@@ -20,9 +20,8 @@ export function readBudgets(db: FinanceDatabase) {
 export function saveBudget(db: FinanceDatabase, input: SaveBudget) {
   assertMonth(input.month);
   assertMoney(input.limit);
-  if (!expenseCategories.some((category) => category.key === input.category))
-    throw new FinanceError('invalidCategory');
   return writeDatabase(db, async (tx) => {
+    await requireExpenseCategory(tx, input.category);
     if (
       input.id &&
       !(await tx.getFirstAsync(

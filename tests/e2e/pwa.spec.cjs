@@ -73,6 +73,9 @@ test('installed shell starts offline, keeps money after reload, and restores a d
     page.getByText('1.000.000 ₫', { exact: true }).first(),
   ).toBeVisible();
   await page.goto('/add');
+  await page
+    .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+    .click();
   const amountInput = page.getByRole('textbox', {
     name: 'SỐ TIỀN',
     exact: true,

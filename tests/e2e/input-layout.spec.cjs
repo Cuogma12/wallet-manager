@@ -67,6 +67,9 @@ for (const width of [320, 390]) {
       'ngan hang'.repeat(10),
     );
     await page.goto('/add');
+    await page
+      .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+      .click();
     await checkFocusedField(
       page,
       page.getByRole('textbox', { name: 'SỐ TIỀN', exact: true }),

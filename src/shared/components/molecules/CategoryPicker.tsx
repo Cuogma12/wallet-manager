@@ -8,6 +8,7 @@ import { colors } from '@/shared/constants/theme';
 import { useI18n } from '@/shared/i18n';
 import { uiClasses } from '@/shared/styles/classes';
 import { cn } from '@/shared/styles/cn';
+import type { CustomCategory } from '@/shared/types/category';
 
 const incomeCategories = [
   {
@@ -22,15 +23,30 @@ export function CategoryPicker({
   type,
   selectedKey,
   onChange,
+  customCategories = [],
   disabled = false,
 }: {
   type: 'expense' | 'income';
   selectedKey: string;
   onChange: (key: string) => void;
+  customCategories?: CustomCategory[];
   disabled?: boolean;
 }) {
   const { t } = useI18n();
-  const categories = type === 'income' ? incomeCategories : expenseCategories;
+  const categories =
+    type === 'income'
+      ? incomeCategories.map((item) => ({ ...item, label: t(item.labelKey) }))
+      : [
+          ...expenseCategories.map((item) => ({
+            ...item,
+            label: t(item.labelKey),
+          })),
+          ...customCategories.map((item) => ({
+            key: item.id,
+            icon: item.icon,
+            label: item.name,
+          })),
+        ];
   return (
     <View className="gap-sm">
       <Text className={uiClasses.fieldLabel}>{t('add.category')}</Text>
@@ -39,7 +55,7 @@ export function CategoryPicker({
           <Pressable
             key={item.key}
             accessibilityRole="button"
-            accessibilityLabel={t(item.labelKey)}
+            accessibilityLabel={item.label}
             accessibilityState={{
               selected: selectedKey === item.key,
               disabled,
@@ -62,7 +78,7 @@ export function CategoryPicker({
                 selectedKey === item.key && 'text-white',
               )}
             >
-              {t(item.labelKey)}
+              {item.label}
             </Text>
           </Pressable>
         ))}

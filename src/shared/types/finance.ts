@@ -28,6 +28,7 @@ export type Transaction = {
   isReviewed: boolean;
   salaryMonth?: string;
   isDemo?: boolean;
+  externalId?: string;
 };
 
 export type FinanceSettings = {
@@ -45,6 +46,10 @@ export type NewTransaction = {
   categoryIcon: string;
   occurredAt: string;
   note?: string;
+  merchant?: string;
+  source?: 'manual' | 'imported';
+  externalId?: string;
+  isReviewed?: boolean;
 };
 
 export type SaveAccount = {

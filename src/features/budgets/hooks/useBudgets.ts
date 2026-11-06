@@ -7,9 +7,19 @@ import { useMonthSelection } from '@/shared/hooks/useMonthSelection';
 import { useI18n } from '@/shared/i18n';
 import type { Budget } from '@/shared/types/budget';
 import { summarizeBudgets } from '@/shared/utils/budgetSummary';
-import { formatMonth, parseMoneyInput } from '@/shared/utils/financeValidation';
+import {
+  assertMoney,
+  formatMonth,
+  parseMoneyInput,
+} from '@/shared/utils/financeValidation';
 
-type Editor = { id?: string; month: string; category: string; amount: string };
+type Editor = {
+  id?: string;
+  month: string;
+  category: string;
+  amount: string;
+  customName: string | null;
+};
 
 export function useBudgets() {
   const finance = useFinance();
@@ -23,19 +33,24 @@ export function useBudgets() {
     () => summarizeBudgets(finance.budgets, finance.transactions, month),
     [finance.budgets, finance.transactions, month],
   );
-  const unusedCategory = expenseCategories.find(
+  const categoryKeys = [
+    ...expenseCategories.map((category) => category.key),
+    ...finance.customCategories.map((category) => category.id),
+  ];
+  const unusedCategory = categoryKeys.find(
     (category) =>
-      !summary.items.some((item) => item.budget.category === category.key),
+      !summary.items.some((item) => item.budget.category === category),
   );
   const busy = action.isSaving || !!editor || !!pendingDelete;
 
   function openCreate() {
-    if (busy || !unusedCategory) return;
+    if (busy) return;
     action.clearError();
     setEditor({
       month: selection.month,
-      category: unusedCategory.key,
+      category: unusedCategory ?? expenseCategories[0].key,
       amount: '',
+      customName: unusedCategory ? null : '',
     });
   }
   function openEdit(budget: Budget) {
@@ -46,13 +61,34 @@ export function useBudgets() {
         month: budget.month,
         category: budget.category,
         amount: String(budget.limit),
+        customName: null,
       });
   }
   function changeAmount(amount: string) {
     if (!action.isSaving) setEditor((value) => value && { ...value, amount });
   }
   function changeCategory(category: string) {
-    if (!action.isSaving) setEditor((value) => value && { ...value, category });
+    if (!action.isSaving)
+      setEditor((value) => value && { ...value, category, customName: null });
+  }
+  function useCustomCategory() {
+    if (!action.isSaving)
+      setEditor((value) => value && { ...value, customName: '' });
+  }
+  function useExistingCategory() {
+    if (!action.isSaving)
+      setEditor(
+        (value) =>
+          value && {
+            ...value,
+            category: unusedCategory ?? expenseCategories[0].key,
+            customName: null,
+          },
+      );
+  }
+  function changeCustomName(customName: string) {
+    if (!action.isSaving)
+      setEditor((value) => value && { ...value, customName });
   }
   function cancelEditor() {
     if (!action.isSaving) {
@@ -63,13 +99,20 @@ export function useBudgets() {
   function saveEditor() {
     if (!editor) return;
     void action.run(
-      () =>
-        finance.saveBudget({
+      async () => {
+        const limit = parseMoneyInput(editor.amount);
+        assertMoney(limit);
+        const category =
+          editor.customName === null
+            ? editor.category
+            : await finance.saveCustomCategory({ name: editor.customName });
+        await finance.saveBudget({
           id: editor.id,
           month: editor.month,
-          category: editor.category,
-          limit: parseMoneyInput(editor.amount),
-        }),
+          category,
+          limit,
+        });
+      },
       () => setEditor(null),
     );
   }
@@ -104,7 +147,7 @@ export function useBudgets() {
     editor,
     pendingDelete,
     busy,
-    canAdd: !!unusedCategory,
+    customCategories: finance.customCategories,
     isSaving: action.isSaving,
     error: action.error,
     loadError: finance.loadError,
@@ -113,6 +156,9 @@ export function useBudgets() {
     openEdit,
     changeAmount,
     changeCategory,
+    useCustomCategory,
+    useExistingCategory,
+    changeCustomName,
     cancelEditor,
     saveEditor,
     askDelete,

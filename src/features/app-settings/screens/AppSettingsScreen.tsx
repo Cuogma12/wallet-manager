@@ -72,12 +72,18 @@ export default function AppSettingsScreen() {
               accounts: model.pending.accounts.length,
               transactions: model.pending.transactions.length,
               budgets: model.pending.budgets?.length ?? 0,
+              categories: model.pending.customCategories?.length ?? 0,
             })}
           </Text>
           <Text className={uiClasses.hint}>{t('backup.replaceWarning')}</Text>
           {model.pending.version === 1 && (
             <Text className={uiClasses.hint}>
               {t('backup.legacyBudgetsWarning')}
+            </Text>
+          )}
+          {model.pending.version < 3 && (
+            <Text className={uiClasses.hint}>
+              {t('backup.legacyCategoriesWarning')}
             </Text>
           )}
           <View className={uiClasses.rowBetween}>

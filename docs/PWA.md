@@ -51,7 +51,7 @@ Safari, PWA cài riêng, Expo Go và app native có thể có các vùng lưu tr
 
 - Ví → Sao lưu & cài ứng dụng → Xuất bản sao lưu. Web tải JSON; native/Expo Go mở bảng chia sẻ để lưu vào Tệp/iCloud. Hủy bảng chia sẻ không có nghĩa đã lưu backup.
 - File không mã hóa, chứa số dư/tên ví/lịch sử; chỉ lưu ở nơi riêng tư. Không chứa mật khẩu, OTP, token, tài khoản đăng nhập hay device ID.
-- Backup mới là v2, giữ dữ liệu tài chính đang hoạt động, kỳ lương, số dư gốc và ngân sách; không phải bản sao toàn bộ trạng thái đồng bộ/tombstone. Các ví khôi phục ở trạng thái local. Hồ sơ đang liên kết đồng bộ không được restore theo luồng local này. App vẫn nhận v1, nhưng tệp cũ không có ngân sách nên khôi phục sẽ xóa hạn mức hiện tại; màn xác nhận có cảnh báo riêng. Bản app cũ chưa hỗ trợ v2 không thể nhập bản sao mới.
+- Backup mới là v3, giữ dữ liệu tài chính đang hoạt động, kỳ lương, số dư gốc, ngân sách và hạng mục tự đặt tên; không phải bản sao toàn bộ trạng thái đồng bộ/tombstone. Các ví khôi phục ở trạng thái local. Hồ sơ đang liên kết đồng bộ không được restore theo luồng local này. App vẫn nhận v1/v2, nhưng dữ liệu không có trong phiên bản cũ sẽ bị thay thế bằng danh sách rỗng và màn xác nhận có cảnh báo riêng. Bản app cũ chưa hỗ trợ v3 không thể nhập bản sao mới.
 - Chọn tệp → kiểm tra ngày/số lượng → đọc cảnh báo → xác nhận đã giữ bản sao hiện tại → Xác nhận thay thế dữ liệu. Chỉ lúc xác nhận mới xóa/thay dữ liệu local trong một transaction; không chạm ngân hàng hay hồ sơ khác.
 - File sai phiên bản, hơn 10 MB, trùng ID, tham chiếu ví không tồn tại hoặc số dư không khớp bị từ chối. Sau restore, tải lại báo cáo. Chưa có nút hoàn tác nếu không giữ bản sao trước đó.
 

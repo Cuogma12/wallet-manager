@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDatabase } from '@/context/DatabaseContext';
 import * as repository from '@/db/repositories/financeRepository';
 import * as budgetRepository from '@/db/repositories/budgetRepository';
+import * as categoryRepository from '@/db/repositories/categoryRepository';
 import type { SaveBudget } from '@/shared/types/budget';
+import type { SaveCustomCategory } from '@/shared/types/category';
 import type {
   NewSalary,
   NewTransaction,
@@ -14,7 +16,13 @@ export function useFinanceStore() {
   const db = useDatabase();
   const [data, setData] = useState<
     Awaited<ReturnType<typeof repository.loadFinance>>
-  >({ accounts: [], transactions: [], settings: null, budgets: [] });
+  >({
+    accounts: [],
+    transactions: [],
+    settings: null,
+    budgets: [],
+    customCategories: [],
+  });
   const [isReady, setReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const refresh = useCallback(async () => {
@@ -52,6 +60,14 @@ export function useFinanceStore() {
     async (id: string) => {
       await budgetRepository.deleteBudget(db, id);
       await refresh();
+    },
+    [db, refresh],
+  );
+  const saveCustomCategory = useCallback(
+    async (input: SaveCustomCategory) => {
+      const id = await categoryRepository.saveCustomCategory(db, input);
+      await refresh();
+      return id;
     },
     [db, refresh],
   );
@@ -97,6 +113,7 @@ export function useFinanceStore() {
       ...data,
       saveBudget,
       deleteBudget,
+      saveCustomCategory,
       isReady,
       loadError,
       refresh,
@@ -112,6 +129,7 @@ export function useFinanceStore() {
       data,
       saveBudget,
       deleteBudget,
+      saveCustomCategory,
       isReady,
       loadError,
       refresh,

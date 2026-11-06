@@ -1,5 +1,3 @@
-import { uiClasses } from '@/shared/styles/classes';
-import { cn } from '@/shared/styles/cn';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,36 +6,24 @@ import {
   Text,
   View,
 } from 'react-native';
-import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
-import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
+import { PasteNotificationPanel } from '@/features/add-transaction/components/PasteNotificationPanel';
+import { RecentTransactionTemplates } from '@/features/add-transaction/components/RecentTransactionTemplates';
+import { TransactionDetailsSection } from '@/features/add-transaction/components/TransactionDetailsSection';
+import { TransactionEntryModePicker } from '@/features/add-transaction/components/TransactionEntryModePicker';
+import { useAddTransaction } from '@/features/add-transaction/hooks/useAddTransaction';
 import { AppButton } from '@/shared/components/atoms/AppButton';
 import { AppInput } from '@/shared/components/atoms/AppInput';
-import { colors } from '@/shared/constants/theme';
-import { inputScrollProps } from '@/shared/constants/inputBehavior';
-import { useAddTransaction } from '@/features/add-transaction/hooks/useAddTransaction';
-import { TransactionDateField } from '@/features/add-transaction/components/TransactionDateField';
-import { AccountPicker } from '@/shared/components/molecules/AccountPicker';
-import { CategoryPicker } from '@/shared/components/molecules/CategoryPicker';
+import { ScreenContainer } from '@/shared/components/atoms/ScreenContainer';
+import { AppIcon } from '@/shared/components/atoms/icons/AppIcon';
 import { TransactionTypePicker } from '@/shared/components/molecules/TransactionTypePicker';
+import { inputScrollProps } from '@/shared/constants/inputBehavior';
+import { colors } from '@/shared/constants/theme';
 import { useI18n } from '@/shared/i18n';
-
-// Feature screen module.
+import { cn } from '@/shared/styles/cn';
+import { uiClasses } from '@/shared/styles/classes';
 
 export default function AddTransactionScreen() {
   const form = useAddTransaction();
-  const {
-    accounts,
-    type,
-    setType,
-    title,
-    setTitle,
-    category,
-    accountId,
-    setAccountId,
-    note,
-    setNote,
-    error,
-  } = form;
   const { t } = useI18n();
 
   return (
@@ -47,7 +33,7 @@ export default function AddTransactionScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerClassName="p-xl pb-11"
+          contentContainerClassName="gap-lg p-xl pb-11"
           {...inputScrollProps}
           showsVerticalScrollIndicator={false}
         >
@@ -56,24 +42,48 @@ export default function AddTransactionScreen() {
               accessibilityLabel={t('add.close')}
               onPress={form.close}
               disabled={form.isSaving}
-              className="w-11 h-11 items-center justify-center rounded-[13px] bg-surface"
+              className="h-11 w-11 items-center justify-center rounded-[13px] bg-surface"
             >
               <AppIcon name="close" size={22} color={colors.text} />
             </Pressable>
-            <Text className="text-text text-[18px] font-extrabold">
+            <Text className="text-[18px] font-extrabold text-text">
               {t('add.title')}
             </Text>
             <View className="w-11" />
           </View>
-          <View className="mt-lg">
-            <TransactionTypePicker
-              value={type}
-              onChange={setType}
+
+          <TransactionEntryModePicker
+            value={form.mode}
+            onChange={form.setMode}
+            disabled={form.isSaving}
+          />
+
+          {form.mode === 'quick' ? (
+            <RecentTransactionTemplates
+              templates={form.templates}
+              accountName={form.templateAccountName}
+              onSelect={form.applyTemplate}
               disabled={form.isSaving}
             />
-          </View>
-          {type === 'income' && (
-            <View className="mt-md gap-sm">
+          ) : (
+            <PasteNotificationPanel
+              value={form.pasteText}
+              onChange={form.setPasteText}
+              onAnalyze={form.analyzePaste}
+              ready={form.pasteReady}
+              error={form.pasteError}
+              canAnalyze={form.canAnalyzePaste}
+              disabled={form.isSaving}
+            />
+          )}
+
+          <TransactionTypePicker
+            value={form.type}
+            onChange={form.changeType}
+            disabled={form.isSaving}
+          />
+          {form.type === 'income' && (
+            <View className="gap-sm">
               <Text className={uiClasses.hint}>{t('add.salaryHint')}</Text>
               <AppButton
                 label={t('accounts.recordSalary')}
@@ -83,8 +93,9 @@ export default function AddTransactionScreen() {
               />
             </View>
           )}
-          <View className="items-center mt-6 p-xl rounded-lg bg-surface">
-            <Text className="text-textMuted text-[10px] font-extrabold tracking-[1px]">
+
+          <View className="items-center rounded-lg bg-surface p-xl">
+            <Text className="text-[10px] font-extrabold tracking-[1px] text-textMuted">
               {t('add.amount')}
             </Text>
             <View
@@ -102,10 +113,9 @@ export default function AddTransactionScreen() {
                 onBlur={form.blurAmount}
                 keyboardType="numeric"
                 placeholder={t('add.amountPlaceholder')}
-                placeholderTextColor={colors.textSubtle}
                 className={uiClasses.amountInput}
               />
-              <Text className="ml-2 shrink-0 text-textMuted text-[20px] font-bold">
+              <Text className="ml-2 shrink-0 text-[20px] font-bold text-textMuted">
                 {t('common.vnd')}
               </Text>
             </View>
@@ -115,80 +125,41 @@ export default function AddTransactionScreen() {
               </Text>
             )}
           </View>
-          <Text className="mt-[22px] mb-[9px] text-text text-[13px] font-extrabold">
-            {t('add.transactionName')}
-          </Text>
-          <AppInput
-            accessibilityLabel={t('add.transactionName')}
-            editable={!form.isSaving}
-            value={title}
-            onChangeText={setTitle}
-            placeholder={
-              type === 'income'
-                ? t('add.incomePlaceholder')
-                : t('add.expensePlaceholder')
-            }
-            placeholderTextColor={colors.textSubtle}
-            className={uiClasses.formInput}
+
+          <View className="gap-xs rounded-md bg-primarySoft p-md">
+            <Text className="text-sm font-extrabold text-text">
+              {form.displayTitle}
+            </Text>
+            <Text className={uiClasses.hint}>
+              {t('add.summary', {
+                category: form.summaryCategory,
+                account: form.selectedAccountName || t('add.noAccountShort'),
+                date: form.transactionDate.date,
+              })}
+            </Text>
+          </View>
+
+          <AppButton
+            label={t(form.showDetails ? 'add.hideDetails' : 'add.showDetails')}
+            variant="secondary"
+            onPress={form.toggleDetails}
+            disabled={form.isSaving}
           />
-          <TransactionDateField model={form.transactionDate} />
-          {type === 'expense' && (
-            <View className="mt-lg">
-              <CategoryPicker
-                type={type}
-                selectedKey={category.key}
-                onChange={form.changeCategory}
-                disabled={form.isSaving}
-              />
-            </View>
+          <TransactionDetailsSection model={form} />
+
+          {!!form.error && (
+            <Text accessibilityRole="alert" className={uiClasses.error}>
+              {form.error}
+            </Text>
           )}
-          <View className="mt-lg">
-            {accounts.length ? (
-              <AccountPicker
-                accounts={accounts}
-                selectedId={accountId}
-                onChange={setAccountId}
-                label={t('add.account')}
-                disabled={form.isSaving}
-              />
-            ) : (
-              <View className="gap-md">
-                <Text className={uiClasses.hint}>{t('add.noAccount')}</Text>
-                <AppButton
-                  label={t('accounts.addWallet')}
-                  onPress={form.createAccount}
-                />
-              </View>
-            )}
-          </View>
-          <Text className="mt-[22px] mb-[9px] text-text text-[13px] font-extrabold">
-            {t('add.note')}{' '}
-            <Text className="text-textSubtle font-medium">
-              {t('add.optional')}
-            </Text>
-          </Text>
-          <AppInput
-            accessibilityLabel={t('add.note')}
-            editable={!form.isSaving}
-            value={note}
-            onChangeText={setNote}
-            placeholder={t('add.notePlaceholder')}
-            placeholderTextColor={colors.textSubtle}
-            className={cn(uiClasses.formInput, 'h-[78px] pt-3.5 align-top')}
-            multiline
+          {form.mode === 'paste' && !form.pasteReady && (
+            <Text className={uiClasses.hint}>{t('add.paste.saveHint')}</Text>
+          )}
+          <AppButton
+            label={t(form.isSaving ? 'common.saving' : 'add.save')}
+            onPress={form.save}
+            disabled={form.isSaving || !form.canSave}
           />
-          {error ? (
-            <Text className="mt-3.5 text-expense text-[12px] font-bold">
-              {error}
-            </Text>
-          ) : null}
-          <View className="mt-lg">
-            <AppButton
-              label={t(form.isSaving ? 'common.saving' : 'add.save')}
-              onPress={form.save}
-              disabled={form.isSaving || !accounts.length}
-            />
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>

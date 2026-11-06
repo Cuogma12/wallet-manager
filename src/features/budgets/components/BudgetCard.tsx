@@ -7,27 +7,40 @@ import { colors } from '@/shared/constants/theme';
 import { useI18n } from '@/shared/i18n';
 import { uiClasses } from '@/shared/styles/classes';
 import type { Budget } from '@/shared/types/budget';
+import type { CustomCategory } from '@/shared/types/category';
 import type { BudgetUsage } from '@/shared/utils/budgetSummary';
 import { formatCurrency } from '@/shared/utils/format';
 
 type Props = {
   item: BudgetUsage;
   disabled: boolean;
+  customCategories: CustomCategory[];
   onEdit: (budget: Budget) => void;
   onDelete: (budget: Budget) => void;
 };
 
-export function BudgetCard({ item, disabled, onEdit, onDelete }: Props) {
+export function BudgetCard({
+  item,
+  disabled,
+  customCategories,
+  onEdit,
+  onDelete,
+}: Props) {
   const { t } = useI18n();
-  const category =
-    expenseCategories.find((value) => value.key === item.budget.category) ??
-    expenseCategories[5];
-  const label = t(category.labelKey);
+  const builtInCategory = expenseCategories.find(
+    (value) => value.key === item.budget.category,
+  );
+  const customCategory = customCategories.find(
+    (value) => value.id === item.budget.category,
+  );
+  const category = builtInCategory ?? expenseCategories[5];
+  const label = customCategory?.name ?? t(category.labelKey);
+  const icon = customCategory?.icon ?? category.icon;
   return (
     <View className="gap-sm rounded-md bg-surface p-md">
       <View className={uiClasses.rowBetween}>
         <View className="min-w-0 flex-1 flex-row items-center gap-sm">
-          <AppIcon name={category.icon} size={20} color={colors.primary} />
+          <AppIcon name={icon} size={20} color={colors.primary} />
           <Text className="flex-1 text-sm font-extrabold text-text">
             {label}
           </Text>

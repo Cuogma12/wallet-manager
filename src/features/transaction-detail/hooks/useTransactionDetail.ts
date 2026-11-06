@@ -10,6 +10,7 @@ import {
   initialTransactionFields,
   type TransactionFields,
 } from '@/features/transaction-detail/utils/transactionForm';
+import { isEditableTransactionSource } from '@/shared/utils/transactionSource';
 
 export function useTransactionDetail() {
   const { id } = useLocalSearchParams<{ id?: string | string[] }>();
@@ -18,6 +19,7 @@ export function useTransactionDetail() {
     transactions,
     updateTransaction,
     deleteTransaction,
+    customCategories,
     loadError,
     refresh,
   } = useFinance();
@@ -31,15 +33,18 @@ export function useTransactionDetail() {
   const action = useAsyncAction();
   const navigation = useFormNavigation();
   const editable =
-    transaction?.source === 'manual' && transaction.type !== 'transfer';
+    !!transaction &&
+    isEditableTransactionSource(transaction) &&
+    transaction.type !== 'transfer';
   const account = accounts.find((item) => item.id === transaction?.accountId);
+  const builtInCategory = expenseCategories.find(
+    (item) => item.key === transaction?.category,
+  );
   const categoryLabel =
     transaction?.category === 'salary'
       ? t('categories.salary')
-      : t(
-          expenseCategories.find((item) => item.key === transaction?.category)
-            ?.labelKey ?? 'categories.other',
-        );
+      : (customCategories.find((item) => item.id === transaction?.category)
+          ?.name ?? t(builtInCategory?.labelKey ?? 'categories.other'));
   const dateLabel = transaction
     ? new Date(transaction.occurredAt).toLocaleDateString(intlLocale, {
         day: 'numeric',
@@ -85,6 +90,7 @@ export function useTransactionDetail() {
   return {
     transaction,
     accounts,
+    customCategories,
     account,
     fields,
     change,

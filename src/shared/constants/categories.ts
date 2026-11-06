@@ -1,10 +1,22 @@
 export const expenseCategories = [
   { key: 'food', labelKey: 'categories.food', icon: 'food-outline' },
   { key: 'transport', labelKey: 'categories.transport', icon: 'car-outline' },
-  { key: 'shopping', labelKey: 'categories.shopping', icon: 'shopping-outline' },
+  {
+    key: 'shopping',
+    labelKey: 'categories.shopping',
+    icon: 'shopping-outline',
+  },
   { key: 'bills', labelKey: 'categories.bills', icon: 'file-document-outline' },
-  { key: 'entertainment', labelKey: 'categories.entertainment', icon: 'play-circle-outline' },
-  { key: 'other', labelKey: 'categories.other', icon: 'dots-horizontal-circle-outline' },
+  {
+    key: 'entertainment',
+    labelKey: 'categories.entertainment',
+    icon: 'play-circle-outline',
+  },
+  {
+    key: 'other',
+    labelKey: 'categories.other',
+    icon: 'dots-horizontal-circle-outline',
+  },
 ] as const;
 
 const categoryIcons: Record<string, string> = {
@@ -18,5 +30,6 @@ const categoryIcons: Record<string, string> = {
 };
 
 export function getCategoryIcon(categoryKey: string) {
+  if (categoryKey.startsWith('category-')) return 'tag-outline';
   return categoryIcons[categoryKey] ?? categoryIcons.other;
 }

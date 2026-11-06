@@ -61,11 +61,13 @@ export const vi = {
       'Đã mở thao tác lưu/chia sẻ tệp. Hãy kiểm tra bản sao đã nằm trong Tệp/iCloud hoặc thư mục tải về; hủy hộp thoại thì chưa có bản sao ngoài app.',
     confirmTitle: 'Thay dữ liệu hiện tại bằng bản sao này?',
     summary:
-      'Bản sao ngày {{date}}: {{accounts}} ví, {{transactions}} giao dịch, {{budgets}} ngân sách.',
+      'Bản sao ngày {{date}}: {{accounts}} ví, {{transactions}} giao dịch, {{budgets}} ngân sách, {{categories}} hạng mục riêng.',
     replaceWarning:
-      'Toàn bộ ví, giao dịch, ngân sách và thiết lập tiền của hồ sơ trên thiết bị này sẽ bị thay thế. Không thể hoàn tác trong app. Hãy xuất bản sao dữ liệu hiện tại trước khi tiếp tục. Không ảnh hưởng ngân hàng hoặc hồ sơ khác.',
+      'Toàn bộ ví, giao dịch, ngân sách, hạng mục riêng và thiết lập tiền của hồ sơ trên thiết bị này sẽ bị thay thế. Không thể hoàn tác trong app. Hãy xuất bản sao dữ liệu hiện tại trước khi tiếp tục. Không ảnh hưởng ngân hàng hoặc hồ sơ khác.',
     legacyBudgetsWarning:
       'Đây là bản sao cũ chưa có ngân sách. Khôi phục sẽ xóa các hạn mức hiện tại; bạn cần tạo lại sau đó.',
+    legacyCategoriesWarning:
+      'Bản sao này chưa có hạng mục tự đặt tên. Khôi phục sẽ xóa các hạng mục riêng hiện tại.',
     acknowledge:
       'Tôi đã giữ bản sao cần thiết và hiểu dữ liệu hiện tại sẽ bị thay thế.',
     confirmReplace: 'Xác nhận thay thế dữ liệu',
@@ -123,6 +125,10 @@ export const vi = {
     alerts: '{{count}} danh mục đã dùng từ 80% hạn mức trở lên.',
     allSet:
       'Đã đặt hạn mức cho tất cả danh mục. Bạn có thể sửa từng ngân sách bên dưới.',
+    useCustomCategory: 'Tạo hạng mục riêng',
+    customCategoryName: 'Tên hạng mục mới',
+    customCategoryPlaceholder: 'Ví dụ: Thú cưng, Học tập',
+    useExistingCategory: 'Chọn hạng mục có sẵn',
     emptyTitle: 'Tháng này chưa có ngân sách',
     emptyText:
       'Thêm hạn mức cho từng danh mục để theo dõi chi tiêu. Ngân sách không làm thay đổi số dư ví.',
@@ -163,7 +169,7 @@ export const vi = {
     salaryMonthHint:
       'Nhập YYYY-MM, ví dụ 2026-10. Tháng lương độc lập với ngày nhận; mỗi tháng chỉ có một khoản lương.',
     readOnly:
-      'Giao dịch nhập từ bên ngoài hoặc chuyển tiền hiện chỉ được xem; chưa hỗ trợ sửa/xóa để tránh lệch dữ liệu.',
+      'Giao dịch đồng bộ từ ngân hàng hoặc chuyển tiền hiện chỉ được xem để tránh lệch dữ liệu. Biến động bạn tự dán vẫn có thể sửa/xóa.',
     accountValue: 'Ví: {{name}}',
     categoryValue: 'Danh mục: {{name}}',
     salaryValue: 'Lương của {{month}}',
@@ -212,11 +218,12 @@ export const vi = {
     balanceHint: 'Chạm vào một ví để sửa tên, loại ví hoặc số dư hiện tại.',
     resetAll: 'Xóa toàn bộ dữ liệu',
     resetTitle: 'Xóa hết dữ liệu trên máy này?',
-    resetWarning: 'Xóa cả ví, lương, giao dịch và ngân sách đã nhập',
+    resetWarning:
+      'Xóa cả ví, lương, giao dịch, ngân sách và hạng mục riêng đã nhập',
     resetDescription:
       'Chỉ dùng khi muốn bắt đầu lại từ đầu. Không thể hoàn tác trong app.',
     resetConfirm:
-      'Tất cả ví, giao dịch, lương, ngân sách và dữ liệu mẫu của hồ sơ hiện tại trên máy này sẽ bị xóa vĩnh viễn; số dư và thiết lập tiền về 0. Không thể hoàn tác nếu chưa có bản sao lưu. Thao tác không xóa tài khoản hay giao dịch tại ngân hàng/ví điện tử.',
+      'Tất cả ví, giao dịch, lương, ngân sách, hạng mục riêng và dữ liệu mẫu của hồ sơ hiện tại trên máy này sẽ bị xóa vĩnh viễn; số dư và thiết lập tiền về 0. Không thể hoàn tác nếu chưa có bản sao lưu. Thao tác không xóa tài khoản hay giao dịch tại ngân hàng/ví điện tử.',
     resetDone: 'Đã xóa dữ liệu trên máy',
     resetDoneText:
       'Bạn có thể tạo ví mới và nhập số dư hiện tại để bắt đầu lại.',
@@ -295,6 +302,11 @@ export const vi = {
     readOnlyTransaction:
       'Giao dịch nhập từ bên ngoài hiện chỉ được xem để tránh lệch dữ liệu đồng bộ.',
     invalidCategory: 'Danh mục không phù hợp với loại giao dịch.',
+    invalidCategoryName: 'Tên hạng mục phải có từ 1 đến 40 ký tự.',
+    categoryExists: 'Hạng mục này đã có rồi. Hãy chọn hạng mục có sẵn.',
+    duplicateTransaction:
+      'Biến động này đã được nhập trước đó nên app không tạo giao dịch trùng.',
+    invalidImport: 'Nội dung biến động không hợp lệ hoặc thiếu mã nhận diện.',
     invalidBackup:
       'Bản sao lưu không hợp lệ, không tương thích hoặc số dư không khớp. Dữ liệu hiện tại chưa bị thay đổi.',
     backupTooLarge: 'Chỉ nhận bản sao lưu nhỏ hơn 10 MB.',
@@ -389,6 +401,33 @@ export const vi = {
   },
   add: {
     title: 'Thêm giao dịch',
+    modes: {
+      quick: 'Nhập nhanh',
+      paste: 'Dán biến động',
+    },
+    recent: {
+      title: 'Dùng lại giao dịch gần đây',
+      empty:
+        'Chưa có giao dịch gần đây. Lần sau app sẽ hiện các mẫu hay dùng ở đây.',
+      use: 'Dùng lại {{title}}, {{amount}}',
+    },
+    paste: {
+      title: 'Nội dung thông báo biến động',
+      hint: 'Sao chép thông báo từ ngân hàng hoặc ví rồi dán vào đây. App sẽ đọc số tiền, chiều thu/chi và ngày để bạn kiểm tra.',
+      placeholder:
+        'Ví dụ: TK ... -50.000 VND lúc 12:30 06/11/2026. Nội dung: THANH TOAN...',
+      analyze: 'Phân tích biến động',
+      ready: 'Đã đọc xong. Hãy kiểm tra các thông tin trước khi lưu.',
+      privacy:
+        'Nội dung được phân tích ngay trên thiết bị, không gửi lên ngân hàng hay máy chủ. App chưa tự đọc thông báo nền.',
+      saveHint: 'Hãy dán và phân tích biến động trước khi lưu.',
+      errors: {
+        empty: 'Hãy dán nội dung thông báo trước.',
+        amount:
+          'Không tìm thấy số tiền kèm VND/₫. Bạn có thể sửa nội dung hoặc chuyển sang Nhập nhanh.',
+        type: 'Chưa xác định được đây là tiền vào hay tiền ra. Thông báo cần có dấu +/− hoặc từ như ghi nợ/ghi có.',
+      },
+    },
     close: 'Đóng',
     expense: 'Chi tiêu',
     income: 'Thu nhập',
@@ -414,6 +453,7 @@ export const vi = {
       sunday: 'CN',
     },
     transactionName: 'Tên giao dịch',
+    transactionNameHint: 'Không bắt buộc. Để trống thì app dùng tên hạng mục.',
     expensePlaceholder: 'Ví dụ: Ăn trưa',
     incomePlaceholder: 'Ví dụ: Tiền thưởng',
     salaryHint:
@@ -424,6 +464,11 @@ export const vi = {
     optional: '(không bắt buộc)',
     notePlaceholder: 'Thêm ghi chú...',
     save: 'Lưu giao dịch',
+    defaultIncomeTitle: 'Thu nhập',
+    summary: '{{category}} · {{account}} · {{date}}',
+    noAccountShort: 'Chưa chọn ví',
+    showDetails: 'Chỉnh chi tiết',
+    hideDetails: 'Ẩn chi tiết',
     amountRequired: 'Nhập số tiền trước nhé.',
     titleRequired: 'Nhập tên giao dịch trước nhé.',
     noAccount:

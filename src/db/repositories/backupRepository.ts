@@ -1,5 +1,6 @@
 import { LOCAL_PROFILE_ID } from '@/db/constants';
 import { readBudgets } from '@/db/repositories/budgetRepository';
+import { readCustomCategories } from '@/db/repositories/categoryRepository';
 import {
   serializeDatabase,
   writeDatabase,
@@ -8,6 +9,7 @@ import {
 import { accountTypes } from '@/shared/constants/accountTypes';
 import { parseBackup } from '@/shared/utils/backupValidation';
 import { FinanceError } from '@/shared/utils/financeValidation';
+import { normalizeCategoryName } from '@/shared/utils/category';
 import type {
   BackupAccount,
   BackupTransaction,
@@ -40,8 +42,9 @@ export function exportBackup(db: FinanceDatabase): Promise<FinanceBackup> {
     );
     return parseBackup({
       format: 'monee-backup',
-      version: 2,
+      version: 3,
       budgets: await readBudgets(db),
+      customCategories: await readCustomCategories(db),
       currency: 'VND',
       createdAt: new Date().toISOString(),
       settings,
@@ -90,10 +93,18 @@ export async function restoreBackup(db: FinanceDatabase, value: unknown) {
       LOCAL_PROFILE_ID,
     );
     const budgetIds = new Set((backup.budgets ?? []).map((row) => row.id));
+    const foreignCategories = await tx.getAllAsync<{ id: string }>(
+      'SELECT id FROM custom_categories WHERE profile_id != ?',
+      LOCAL_PROFILE_ID,
+    );
+    const categoryIds = new Set(
+      (backup.customCategories ?? []).map((row) => row.id),
+    );
     if (
       foreignAccounts.some((row) => accountIds.has(row.id)) ||
       foreignTransactions.some((row) => transactionIds.has(row.id)) ||
-      foreignBudgets.some((row) => budgetIds.has(row.id))
+      foreignBudgets.some((row) => budgetIds.has(row.id)) ||
+      foreignCategories.some((row) => categoryIds.has(row.id))
     )
       throw new FinanceError('restoreUnavailable');
     const timestamp = new Date().toISOString();
@@ -109,6 +120,23 @@ export async function restoreBackup(db: FinanceDatabase, value: unknown) {
         budget.month,
         budget.category,
         budget.limit,
+        timestamp,
+        timestamp,
+      );
+    }
+    await tx.runAsync(
+      'DELETE FROM custom_categories WHERE profile_id = ?',
+      LOCAL_PROFILE_ID,
+    );
+    for (const category of backup.customCategories ?? []) {
+      await tx.runAsync(
+        `INSERT INTO custom_categories
+         (id, profile_id, name, normalized_name, icon, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'tag-outline', ?, ?)`,
+        category.id,
+        LOCAL_PROFILE_ID,
+        category.name,
+        normalizeCategoryName(category.name),
         timestamp,
         timestamp,
       );

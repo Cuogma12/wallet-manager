@@ -79,11 +79,8 @@ export default function BudgetsScreen() {
       <AppButton
         label={t('budgets.add')}
         onPress={model.openCreate}
-        disabled={model.busy || !model.canAdd || model.loadError}
+        disabled={model.busy || !!model.loadError}
       />
-      {!model.canAdd && (
-        <Text className={uiClasses.hint}>{t('budgets.allSet')}</Text>
-      )}
       <BudgetEditor model={model} />
       {model.pendingDelete && (
         <View className="gap-md rounded-md bg-warningSoft p-md">
@@ -117,6 +114,7 @@ export default function BudgetsScreen() {
         <BudgetCard
           key={item.budget.id}
           item={item}
+          customCategories={model.customCategories}
           disabled={model.busy || model.loadError}
           onEdit={model.openEdit}
           onDelete={model.askDelete}
