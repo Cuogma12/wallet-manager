@@ -3,9 +3,11 @@ import type { Account, Transaction } from '@/shared/types/finance';
 export type QuickTransactionTemplate = Pick<
   Transaction,
   'id' | 'accountId' | 'title' | 'amount' | 'category'
-> & { type: 'expense' | 'income' };
+> & { type: 'expense' | 'income'; usageCount: number };
 
-/** Returns a short, de-duplicated list of transactions that can safely be reused. */
+type RankedTemplate = QuickTransactionTemplate & { recency: number };
+
+/** Returns frequently reused transactions, keeping the latest amount for each one. */
 export function buildQuickTransactionTemplates(
   transactions: Transaction[],
   accounts: Account[],
@@ -14,10 +16,9 @@ export function buildQuickTransactionTemplates(
 ): QuickTransactionTemplate[] {
   const accountIds = new Set(accounts.map((account) => account.id));
   const categoryKeys = new Set(expenseCategoryKeys);
-  const signatures = new Set<string>();
-  const templates: QuickTransactionTemplate[] = [];
+  const templates = new Map<string, RankedTemplate>();
 
-  for (const transaction of transactions) {
+  transactions.forEach((transaction, recency) => {
     if (
       transaction.isDemo ||
       transaction.type === 'transfer' ||
@@ -26,25 +27,34 @@ export function buildQuickTransactionTemplates(
       (transaction.type === 'expense' &&
         !categoryKeys.has(transaction.category))
     )
-      continue;
+      return;
     const signature = [
       transaction.type,
       transaction.accountId,
       transaction.category,
-      transaction.amount,
       transaction.title.trim().toLocaleLowerCase('vi-VN'),
     ].join('|');
-    if (signatures.has(signature)) continue;
-    signatures.add(signature);
-    templates.push({
+    const existing = templates.get(signature);
+    if (existing) {
+      existing.usageCount += 1;
+      return;
+    }
+    templates.set(signature, {
       id: transaction.id,
       accountId: transaction.accountId,
       title: transaction.title,
       amount: transaction.amount,
       type: transaction.type,
       category: transaction.category,
+      usageCount: 1,
+      recency,
     });
-    if (templates.length === maximum) break;
-  }
-  return templates;
+  });
+  return [...templates.values()]
+    .sort(
+      (left, right) =>
+        right.usageCount - left.usageCount || left.recency - right.recency,
+    )
+    .slice(0, maximum)
+    .map(({ recency: _recency, ...template }) => template);
 }

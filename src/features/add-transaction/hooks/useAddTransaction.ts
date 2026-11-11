@@ -7,6 +7,8 @@ import {
   buildQuickTransactionTemplates,
   type QuickTransactionTemplate,
 } from '@/features/add-transaction/utils/quickTransaction';
+import { parseQuickTransactionText } from '@/features/add-transaction/utils/parseQuickTransactionText';
+import { learnCategoryFromHistory } from '@/features/add-transaction/utils/learnedCategory';
 import { parseBalanceNotification } from '@/services/imports/parseBalanceNotification';
 import { getAccountProvider } from '@/shared/constants/accountProviders';
 import {
@@ -47,6 +49,10 @@ export function useAddTransaction() {
   );
   const latestExpense = templates.find((item) => item.type === 'expense');
   const [mode, setModeState] = useState<EntryMode>('quick');
+  const [quickText, setQuickTextState] = useState('');
+  const [quickTextSource, setQuickTextSource] = useState<
+    'history' | 'rules' | null
+  >(null);
   const [showDetails, setShowDetails] = useState(false);
   const [type, setTypeState] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
@@ -100,6 +106,12 @@ export function useAddTransaction() {
   const summaryCategory = type === 'income' ? t('add.income') : categoryLabel;
   const pasteReady =
     !!importMetadata && parsedText !== '' && parsedText === pasteText.trim();
+  const canSave =
+    !!accounts.length &&
+    !!accountId &&
+    Number.isSafeInteger(parsedAmount) &&
+    parsedAmount > 0 &&
+    (mode === 'quick' || pasteReady);
 
   function resetImport() {
     setImportMetadata(null);
@@ -109,7 +121,45 @@ export function useAddTransaction() {
   function setMode(nextMode: EntryMode) {
     if (action.isSaving || nextMode === mode) return;
     setModeState(nextMode);
+    if (nextMode === 'paste') {
+      setQuickTextState('');
+      setQuickTextSource(null);
+    }
     resetImport();
+  }
+  function changeQuickText(value: string) {
+    if (action.isSaving) return;
+    setQuickTextState(value);
+    const parsed = parseQuickTransactionText(value);
+    if (!parsed) {
+      if (quickTextSource) {
+        setAmount('');
+        setTitle('');
+        setSelectedCategory('');
+      }
+      setQuickTextSource(null);
+      return;
+    }
+    const customCategory = customCategories.find((item) => {
+      const normalized = normalizeCategoryName(item.name);
+      return (
+        normalized.length >= 3 && parsed.normalizedText.includes(normalized)
+      );
+    });
+    const learnedCategory = learnCategoryFromHistory(
+      parsed.title,
+      transactions,
+      validExpenseCategories,
+    );
+    setTypeState(parsed.type);
+    setAmount(String(parsed.amount));
+    setTitle(parsed.title);
+    setSelectedCategory(
+      customCategory?.id ?? learnedCategory?.category ?? parsed.category,
+    );
+    if (parsed.date === 'today') transactionDate.chooseToday();
+    if (parsed.date === 'yesterday') transactionDate.chooseYesterday();
+    setQuickTextSource(learnedCategory ? 'history' : 'rules');
   }
   function changeType(nextType: TransactionType) {
     if (!action.isSaving) setTypeState(nextType);
@@ -154,6 +204,8 @@ export function useAddTransaction() {
     setAccountId(template.accountId);
     transactionDate.chooseToday();
     setModeState('quick');
+    setQuickTextState('');
+    setQuickTextSource(null);
     resetImport();
   }
   function findAccount(normalizedText: string) {
@@ -209,7 +261,7 @@ export function useAddTransaction() {
     router.push('/salary');
   }
   function save() {
-    if (!accountId || (mode === 'paste' && !pasteReady)) return;
+    if (!canSave) return;
     const finalCategory = type === 'income' ? 'other' : category;
     const finalTitle = displayTitle;
     void action.run(
@@ -248,6 +300,9 @@ export function useAddTransaction() {
     transactionDate,
     mode,
     setMode,
+    quickText,
+    quickTextSource,
+    changeQuickText,
     showDetails,
     toggleDetails,
     type,
@@ -275,7 +330,7 @@ export function useAddTransaction() {
     pasteReady,
     pasteError: pasteErrorKey ? t(`add.paste.errors.${pasteErrorKey}`) : '',
     applyTemplate,
-    canSave: !!accounts.length && (mode === 'quick' || pasteReady),
+    canSave,
     save,
     openSalary,
     ...navigation,

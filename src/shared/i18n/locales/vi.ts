@@ -406,10 +406,19 @@ export const vi = {
       paste: 'Dán biến động',
     },
     recent: {
-      title: 'Dùng lại giao dịch gần đây',
+      title: 'Giao dịch thường dùng',
       empty:
-        'Chưa có giao dịch gần đây. Lần sau app sẽ hiện các mẫu hay dùng ở đây.',
+        'Chưa có giao dịch thường dùng. App sẽ tự gợi ý sau khi bạn nhập giao dịch.',
       use: 'Dùng lại {{title}}, {{amount}}',
+      usageCount: 'Đã dùng {{count}} lần',
+    },
+    quickText: {
+      title: 'Nhập bằng một câu',
+      hint: 'Gõ tên, số tiền và ngày nếu cần. App tự điền ngay khi hiểu nội dung.',
+      placeholder: 'Ví dụ: Ăn trưa hôm qua 35k',
+      ready: 'Đã tự điền. Kiểm tra bên dưới rồi lưu nhé.',
+      readyFromHistory:
+        'Đã tự điền theo giao dịch trước của bạn. Kiểm tra rồi lưu nhé.',
     },
     paste: {
       title: 'Nội dung thông báo biến động',

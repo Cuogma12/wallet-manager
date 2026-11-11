@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { PasteNotificationPanel } from '@/features/add-transaction/components/PasteNotificationPanel';
+import { QuickTextEntry } from '@/features/add-transaction/components/QuickTextEntry';
 import { RecentTransactionTemplates } from '@/features/add-transaction/components/RecentTransactionTemplates';
 import { TransactionDetailsSection } from '@/features/add-transaction/components/TransactionDetailsSection';
 import { TransactionEntryModePicker } from '@/features/add-transaction/components/TransactionEntryModePicker';
@@ -30,7 +31,7 @@ export default function AddTransactionScreen() {
     <ScreenContainer>
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerClassName="gap-lg p-xl pb-11"
@@ -58,14 +59,7 @@ export default function AddTransactionScreen() {
             disabled={form.isSaving}
           />
 
-          {form.mode === 'quick' ? (
-            <RecentTransactionTemplates
-              templates={form.templates}
-              accountName={form.templateAccountName}
-              onSelect={form.applyTemplate}
-              disabled={form.isSaving}
-            />
-          ) : (
+          {form.mode === 'paste' && (
             <PasteNotificationPanel
               value={form.pasteText}
               onChange={form.setPasteText}
@@ -73,6 +67,16 @@ export default function AddTransactionScreen() {
               ready={form.pasteReady}
               error={form.pasteError}
               canAnalyze={form.canAnalyzePaste}
+              disabled={form.isSaving}
+            />
+          )}
+
+          {form.mode === 'quick' && (
+            <QuickTextEntry
+              value={form.quickText}
+              onChange={form.changeQuickText}
+              onSubmit={form.save}
+              source={form.quickTextSource}
               disabled={form.isSaving}
             />
           )}
@@ -111,7 +115,9 @@ export default function AddTransactionScreen() {
                 value={form.amountDisplay}
                 onChangeText={form.changeAmount}
                 onBlur={form.blurAmount}
+                onSubmitEditing={form.save}
                 keyboardType="numeric"
+                returnKeyType="done"
                 placeholder={t('add.amountPlaceholder')}
                 className={uiClasses.amountInput}
               />
@@ -125,6 +131,15 @@ export default function AddTransactionScreen() {
               </Text>
             )}
           </View>
+
+          {form.mode === 'quick' && (
+            <RecentTransactionTemplates
+              templates={form.templates}
+              accountName={form.templateAccountName}
+              onSelect={form.applyTemplate}
+              disabled={form.isSaving}
+            />
+          )}
 
           <View className="gap-xs rounded-md bg-primarySoft p-md">
             <Text className="text-sm font-extrabold text-text">
@@ -155,12 +170,14 @@ export default function AddTransactionScreen() {
           {form.mode === 'paste' && !form.pasteReady && (
             <Text className={uiClasses.hint}>{t('add.paste.saveHint')}</Text>
           )}
+        </ScrollView>
+        <View className="border-t border-border bg-background px-xl pb-md pt-sm">
           <AppButton
             label={t(form.isSaving ? 'common.saving' : 'add.save')}
             onPress={form.save}
             disabled={form.isSaving || !form.canSave}
           />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </ScreenContainer>
   );

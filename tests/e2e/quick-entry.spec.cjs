@@ -15,10 +15,14 @@ test('amount-only quick entry, recent template and pasted notification work offl
 }) => {
   await createWallet(page, 'MBBank cá nhân', 1000000);
   await page.goto('/add');
+  const saveButton = page.getByRole('button', {
+    name: 'Lưu giao dịch',
+    exact: true,
+  });
+  await expect(saveButton).toBeDisabled();
   await page.getByLabel('SỐ TIỀN', { exact: true }).fill('50000');
-  await page
-    .getByRole('button', { name: 'Lưu giao dịch', exact: true })
-    .click();
+  await expect(saveButton).toBeEnabled();
+  await saveButton.click();
   await expect(page).not.toHaveURL(/\/add(?:[?#]|$)/);
   await page.goto('/transactions');
   await expect(page.getByText('Ăn uống', { exact: true })).toBeVisible();
@@ -82,6 +86,63 @@ test('amount-only quick entry, recent template and pasted notification work offl
   await expect(
     page.getByRole('button', { name: 'Sửa ví MBBank cá nhân', exact: true }),
   ).toContainText('880.000 ₫');
+});
+
+test('a Vietnamese sentence fills and saves a categorized transaction', async ({
+  page,
+}) => {
+  await createWallet(page, 'Ví ăn uống', 500000);
+  await page.goto('/add');
+  await page
+    .getByLabel('Nhập bằng một câu', { exact: true })
+    .fill('ăn tối hôm qua 40k');
+  await expect(
+    page.getByText('Đã tự điền. Kiểm tra bên dưới rồi lưu nhé.', {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.getByLabel('SỐ TIỀN', { exact: true })).toHaveValue(
+    '40000',
+  );
+  await expect(page.getByText('Ăn tối', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Ăn uống · Ví ăn uống ·/)).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Lưu giao dịch', exact: true })
+    .click();
+  await expect(page).not.toHaveURL(/\/add(?:[?#]|$)/);
+  await page.goto('/transactions');
+  await expect(page.getByText('Ăn tối', { exact: true })).toBeVisible();
+  await expect(page.getByText('-40.000 ₫', { exact: true })).toBeVisible();
+});
+
+test('quick entry learns a corrected category for a similar phrase', async ({
+  page,
+}) => {
+  await createWallet(page, 'Ví cá nhân', 1000000);
+  await page.goto('/add');
+  await page
+    .getByLabel('Nhập bằng một câu', { exact: true })
+    .fill('đi nhậu 250k');
+  await page
+    .getByRole('button', { name: 'Chỉnh chi tiết', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Ăn uống', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Lưu giao dịch', exact: true })
+    .click();
+  await expect(page).not.toHaveURL(/\/add(?:[?#]|$)/);
+
+  await page.goto('/add');
+  await page
+    .getByLabel('Nhập bằng một câu', { exact: true })
+    .fill('nhậu với bạn 400k');
+  await expect(
+    page.getByText(
+      'Đã tự điền theo giao dịch trước của bạn. Kiểm tra rồi lưu nhé.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.getByText(/Ăn uống · Ví cá nhân ·/)).toBeVisible();
 });
 
 test('a named custom budget category is reusable when recording expenses', async ({

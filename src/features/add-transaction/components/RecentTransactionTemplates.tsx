@@ -46,6 +46,11 @@ export function RecentTransactionTemplates({
             <Text className={uiClasses.hint} numberOfLines={1}>
               {accountName(template)}
             </Text>
+            {template.usageCount > 1 && (
+              <Text className="text-xs font-bold text-textSubtle">
+                {t('add.recent.usageCount', { count: template.usageCount })}
+              </Text>
+            )}
           </Pressable>
         ))}
       </View>

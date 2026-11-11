@@ -9,6 +9,12 @@ const { parseBalanceNotification } = loadTypescript(
 const { buildQuickTransactionTemplates } = loadTypescript(
   'src/features/add-transaction/utils/quickTransaction.ts',
 );
+const { parseQuickTransactionText } = loadTypescript(
+  'src/features/add-transaction/utils/parseQuickTransactionText.ts',
+);
+const { learnCategoryFromHistory } = loadTypescript(
+  'src/features/add-transaction/utils/learnedCategory.ts',
+);
 const { migrateDbIfNeeded } = loadTypescript('src/db/database.ts');
 const finance = loadTypescript('src/db/repositories/financeRepository.ts');
 
@@ -58,7 +64,111 @@ test('notification parser handles income and refuses ambiguous or malformed text
   });
 });
 
-test('recent templates exclude unsafe rows and collapse exact duplicates', () => {
+test('natural quick entry parses Vietnamese amounts, categories and relative dates', () => {
+  assert.deepEqual(parseQuickTransactionText('ăn trưa 35k'), {
+    amount: 35000,
+    type: 'expense',
+    title: 'Ăn trưa',
+    category: 'food',
+    date: null,
+    normalizedText: 'an trua 35k',
+  });
+  assert.deepEqual(parseQuickTransactionText('ăn tối hôm qua 40 nghìn'), {
+    amount: 40000,
+    type: 'expense',
+    title: 'Ăn tối',
+    category: 'food',
+    date: 'yesterday',
+    normalizedText: 'an toi hom qua 40 nghin',
+  });
+  assert.equal(
+    parseQuickTransactionText('đổ xăng 100.000').category,
+    'transport',
+  );
+  assert.equal(parseQuickTransactionText('mua áo 350k').category, 'shopping');
+});
+
+test('natural quick entry supports income and rejects incomplete phrases', () => {
+  const income = parseQuickTransactionText('thưởng 2tr');
+  assert.equal(income.amount, 2000000);
+  assert.equal(income.type, 'income');
+  assert.equal(income.title, 'Thưởng');
+  assert.equal(parseQuickTransactionText('freelance 1,5tr').amount, 1500000);
+  assert.equal(parseQuickTransactionText('ăn trưa'), null);
+  assert.equal(parseQuickTransactionText('35k'), null);
+  assert.equal(parseQuickTransactionText('ăn trưa 0k'), null);
+});
+
+test('quick entry learns categories from reviewed transaction history', () => {
+  const base = {
+    accountId: 'cash',
+    amount: 250000,
+    type: 'expense',
+    categoryIcon: '',
+    occurredAt: '2026-11-10T00:00:00.000Z',
+    source: 'manual',
+    isReviewed: true,
+  };
+  const learned = learnCategoryFromHistory(
+    'Nhậu với bạn',
+    [
+      {
+        ...base,
+        id: 'meal',
+        title: 'Đi nhậu',
+        merchant: 'Đi nhậu',
+        category: 'food',
+      },
+      {
+        ...base,
+        id: 'shopping',
+        title: 'Mua áo',
+        merchant: 'Mua áo',
+        category: 'shopping',
+      },
+    ],
+    ['food', 'shopping'],
+  );
+  assert.equal(learned.category, 'food');
+  assert.ok(learned.confidence >= 0.5);
+});
+
+test('category learning ignores uncertain, demo and unrelated transactions', () => {
+  const base = {
+    accountId: 'cash',
+    title: 'Khám mèo',
+    merchant: 'Khám mèo',
+    amount: 250000,
+    type: 'expense',
+    category: 'pet',
+    categoryIcon: '',
+    occurredAt: '2026-11-10T00:00:00.000Z',
+    source: 'manual',
+    isReviewed: true,
+  };
+  assert.equal(
+    learnCategoryFromHistory('Khám mèo định kỳ', [base], ['pet']).category,
+    'pet',
+  );
+  assert.equal(
+    learnCategoryFromHistory(
+      'Khám mèo',
+      [
+        { ...base, id: 'unreviewed', isReviewed: false },
+        { ...base, id: 'demo', isDemo: true },
+        { ...base, id: 'income', type: 'income' },
+      ],
+      ['pet'],
+    ),
+    null,
+  );
+  assert.equal(
+    learnCategoryFromHistory('Đổ xăng', [{ ...base, id: 'pet' }], ['pet']),
+    null,
+  );
+});
+
+test('quick templates exclude unsafe rows and collapse matching transactions', () => {
   const accounts = [{ id: 'cash' }, { id: 'bank' }];
   const base = {
     accountId: 'cash',
@@ -90,6 +200,35 @@ test('recent templates exclude unsafe rows and collapse exact duplicates', () =>
     templates.map((item) => item.id),
     ['new', 'income', 'bank'],
   );
+  assert.equal(templates[0].usageCount, 2);
+});
+
+test('quick templates prioritize frequent transactions and keep their latest amount', () => {
+  const accounts = [{ id: 'cash' }];
+  const base = {
+    accountId: 'cash',
+    merchant: '',
+    type: 'expense',
+    category: 'food',
+    categoryIcon: '',
+    occurredAt: '2026-11-06T00:00:00.000Z',
+    source: 'manual',
+    isReviewed: true,
+  };
+  const templates = buildQuickTransactionTemplates(
+    [
+      { ...base, id: 'latest-coffee', title: 'Cà phê', amount: 35000 },
+      { ...base, id: 'lunch', title: 'Ăn trưa', amount: 50000 },
+      { ...base, id: 'old-coffee', title: 'Cà phê', amount: 30000 },
+      { ...base, id: 'older-coffee', title: 'Cà phê', amount: 25000 },
+    ],
+    accounts,
+    ['food'],
+  );
+  assert.equal(templates[0].id, 'latest-coffee');
+  assert.equal(templates[0].amount, 35000);
+  assert.equal(templates[0].usageCount, 3);
+  assert.equal(templates[1].id, 'lunch');
 });
 
 test('pasted imports deduplicate but remain editable and removable as local user data', async (t) => {
